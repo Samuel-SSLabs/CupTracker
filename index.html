@@ -39,6 +39,31 @@
             font-weight: bold;
             border-bottom: 2px solid #FFFFFF;
             flex-shrink: 0;
+            position: relative;
+        }
+
+        #btn-teste-audio {
+            position: absolute;
+            right: 10px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+
+        #btn-teste-audio:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        #btn-teste-audio img {
+            width: 20px;
+            height: 20px;
+            object-fit: contain;
         }
 
         .game-list {
@@ -144,7 +169,12 @@
     <div id="debug-log">Conectando...</div>
 
     <div class="tft-screen">
-        <div class="header">COPA 2026</div>
+        <div class="header">
+            <span>COPA 2026</span>
+            <button id="btn-teste-audio" title="Testar Áudio / Liberar Navegador">
+                <img src="assets/favicon.ico" alt="Testar Áudio">
+            </button>
+        </div>
         
         <div class="game-list" id="main-queue">
             <div style="color: white; text-align: center; margin-top: 50px;">Carregando...</div>
@@ -163,6 +193,16 @@
 
         let placaresAnteriores = {};
         const somGol = new Audio('assets/audio.mp3');
+
+        // Evento de clique para o botão de teste de áudio
+        document.getElementById('btn-teste-audio').addEventListener('click', () => {
+            somGol.currentTime = 0; // Reinicia o áudio caso seja clicado várias vezes seguidas
+            somGol.play().then(() => {
+                console.log("Áudio liberado e testado com sucesso.");
+            }).catch(e => {
+                console.log("Erro ao reproduzir o áudio de teste.", e);
+            });
+        });
         
         function criarBlocoPartida(match, isLive = false) {
             const siglaA = match.homeTeam.tla || "---";
@@ -216,16 +256,16 @@
 
                 const aoVivo = [], proximos = [], encerrados = [];
                 data.matches.forEach(m => {
-                    if (m.status === "IN_PLAY" || m.status === "PAUSED") { aoVivo.push(m);
+                    if (m.status === "IN_PLAY" || m.status === "PAUSED") { 
+                        aoVivo.push(m);
                         const golsCasa = m.score.fullTime.home !== null ? m.score.fullTime.home : 0;
                         const golsFora = m.score.fullTime.away !== null ? m.score.fullTime.away : 0;
                         const totalGolsAtuais = golsCasa + golsFora;
 
                         if (placaresAnteriores[m.id] !== undefined && totalGolsAtuais > placaresAnteriores[m.id]) {
-                          somGol.play().catch(e => console.log("Áudio bloqueado pelo navegador", e));
+                            somGol.play().catch(e => console.log("Áudio bloqueado pelo navegador", e));
                         }
         
-
                         placaresAnteriores[m.id] = totalGolsAtuais;
                     }
                     else if (m.status === "FINISHED") encerrados.push(m);
