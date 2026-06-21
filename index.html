@@ -341,6 +341,24 @@
         const TEMPO_DESTAQUE_MS = 180000; 
 
         const somGol = new Audio('assets/audio.mp3');
+        const SIGLAS_FIFA = {
+            "Canada": "CAN", "United States": "USA", "Mexico": "MEX",
+            "Curacao": "CUW", "Haiti": "HAI", "Panama": "PAN",
+            "Argentina": "ARG", "Brazil": "BRA", "Colombia": "COL", 
+            "Ecuador": "ECU", "Paraguay": "PAR", "Uruguay": "URU",
+            "Germany": "GER", "Austria": "AUT", "Belgium": "BEL", 
+            "Bosnia and Herzegovina": "BIH", "Croatia": "CRO", "Scotland": "SCO", 
+            "Spain": "ESP", "France": "FRA", "Netherlands": "NED", 
+            "England": "ENG", "Norway": "NOR", "Portugal": "POR", 
+            "Czech Republic": "CZE", "Sweden": "SWE", "Switzerland": "SUI", 
+            "Turkey": "TUR", "Saudi Arabia": "KSA", "Australia": "AUS", 
+            "Qatar": "QAT", "South Korea": "KOR", "Iran": "IRN", 
+            "Iraq": "IRQ", "Japan": "JPN", "Jordan": "JOR", 
+            "Uzbekistan": "UZB", "South Africa": "RSA", "Algeria": "ALG", 
+            "Cape Verde": "CPV", "Ivory Coast": "CIV", "Egypt": "EGY", 
+            "Ghana": "GHA", "Morocco": "MAR", "DR Congo": "COD", 
+            "Senegal": "SEN", "Tunisia": "TUN", "New Zealand": "NZL"
+        };
 
         document.getElementById('btn-teste-audio').addEventListener('click', () => {
             somGol.currentTime = 0; 
@@ -352,8 +370,10 @@
         }
         
         function criarBlocoPartida(match, isLive = false, quemMarcou = null) {
-            const siglaA = match.teams.home.name.substring(0, 3).toUpperCase();
-            const siglaB = match.teams.away.name.substring(0, 3).toUpperCase();
+            const nomeA = match.teams.home.name;
+            const nomeB = match.teams.away.name;  
+            const siglaA = SIGLAS_FIFA[nomeA] || nomeA.substring(0, 3).toUpperCase();
+            const siglaB = SIGLAS_FIFA[nomeB] || nomeB.substring(0, 3).toUpperCase();
             const logoA = match.teams.home.logo;
             const logoB = match.teams.away.logo;
             
