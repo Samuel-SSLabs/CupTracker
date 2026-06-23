@@ -159,10 +159,26 @@ body {
 .stat-barra-home { height: 100%; background: var(--green-1); border-radius: 4px 0 0 4px; transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1); }
 .stat-barra-away { height: 100%; background: var(--amber); border-radius: 0 4px 4px 0; transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1); }
 
-/* EVENTOS — novo layout de 3 colunas */
+/* EVENTOS — layout: [min'] | col-home | col-away */
+
+/* Cabeçalho da seção com siglas dos times */
+.eventos-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.eventos-header-time {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: 0.5px;
+    min-width: 28px;
+}
+.eventos-header-time:last-child { text-align: right; }
+
 .evento-item {
     display: grid;
-    grid-template-columns: 1fr auto 1fr;
+    grid-template-columns: 28px 1fr 1fr;
     align-items: center;
     gap: 4px;
     padding: 5px 6px;
@@ -172,23 +188,6 @@ body {
     border: 1px solid var(--card-border);
 }
 
-/* coluna lateral: alinha os elementos lado a lado */
-.evento-col-side {
-    display: flex;
-    align-items: center;
-    gap: 3px;
-}
-.evento-col-side.left  { justify-content: flex-start; }
-.evento-col-side.right { justify-content: flex-end; }
-
-.evento-sigla {
-    font-size: 10px;
-    font-weight: 700;
-    color: var(--text-muted);
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-}
-
 .evento-minuto {
     font-size: 10px;
     font-weight: 700;
@@ -196,15 +195,25 @@ body {
     white-space: nowrap;
 }
 
+/* colunas dos times */
+.evento-col {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    overflow: hidden;
+}
+.evento-col.home { justify-content: flex-start; }
+.evento-col.away { justify-content: flex-end; }
+
 .evento-icone { font-size: 13px; flex-shrink: 0; line-height: 1; }
 
-/* nome do jogador — coluna central */
-.evento-desc {
+.evento-nome {
     font-size: 11px;
     color: var(--text-primary);
-    text-align: center;
     line-height: 1.3;
-    word-break: break-word;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .evento-detalhe { color: var(--text-muted); font-size: 10px; }
