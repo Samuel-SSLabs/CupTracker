@@ -275,8 +275,8 @@ function criarBlocoPartida(match, isLive, quemMarcou) {
         infoMinuto = elapsed ? (extra ? `${elapsed}+${extra}'` : `${elapsed}'`) : '';
         infoCentral = '<span class="live-dot"></span> Ao Vivo';
     } else if (isPaused) {
-        infoMinuto = 'HT';
-        infoCentral = 'Intervalo';
+        infoMinuto = 'Intervalo';
+        infoCentral = '';
     } else if (isFinished) {
         infoCentral = `${dia}/${mes} - Fim`;
     } else {
