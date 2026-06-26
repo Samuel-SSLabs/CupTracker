@@ -35,6 +35,109 @@ const SIGLAS_FIFA = {
     "Senegal": "SEN", "Tunisia": "TUN", "New Zealand": "NZL"
 };
 
+// Cores tema oficiais por seleção (primary kit / associação nacional)
+const CORES_SELECOES = {
+    6:    '#FFD700', // Brasil — amarelo
+    26:   '#75AADB', // Argentina — azul celeste
+    9:    '#C60B1E', // Espanha — vermelho
+    2:    '#003189', // França — azul marinho
+    25:   '#000000', // Alemanha — preto
+    27:   '#C8102E', // Portugal — vermelho
+    10:   '#003090', // Inglaterra — azul
+    15:   '#FF0000', // Suíça — vermelho
+    1118: '#FF6900', // Holanda — laranja
+    12:   '#BC002D', // Japão — vermelho
+    8:    '#FCD116', // Colômbia — amarelo
+    16:   '#006847', // México — verde
+    2384: '#002868', // EUA — azul
+    31:   '#C1272D', // Marrocos — vermelho
+    1090: '#003087', // Noruega — azul
+    5529: '#FF0000', // Canadá — vermelho
+    5:    '#006AA7', // Suécia — azul
+    3:    '#FF0000', // Croácia — vermelho xadrez
+    7:    '#5EB6E4', // Uruguai — azul celeste
+    17:   '#C60C30', // Coreia do Sul — vermelho
+    22:   '#239F40', // Irã — verde
+    32:   '#C8102E', // Egito — vermelho
+    1531: '#007A4D', // África do Sul — verde
+    20:   '#FFD700', // Austrália — amarelo/dourado
+    1108: '#003F87', // Escócia — azul
+    1:    '#000000', // Bélgica — preto
+    1532: '#006233', // Argélia — verde
+    1113: '#002395', // Bósnia — azul
+    2380: '#D52B1E', // Paraguai — vermelho
+    1533: '#003893', // Cabo Verde — azul
+    1504: '#FCD116', // Gana — amarelo
+    775:  '#C8102E', // Áustria — vermelho
+    1508: '#007FFF', // Congo DR — azul
+    2382: '#FFD100', // Equador — amarelo
+    5530: '#003087', // Curaçao — azul
+    28:   '#C8102E', // Tunísia — vermelho
+    1569: '#8D1B3D', // Qatar — vinho
+    770:  '#D7141A', // Tchéquia — vermelho
+    1548: '#007A3D', // Jordânia — verde
+    1567: '#007A3D', // Iraque — verde
+    1568: '#1EB53A', // Uzbequistão — verde
+    4673: '#00247D', // Nova Zelândia — azul
+    2386: '#00209F', // Haiti — azul
+    11:   '#005F9E', // Panamá — azul
+    777:  '#C8102E', // Turquia — vermelho
+    23:   '#006C35', // Arábia Saudita — verde
+    13:   '#00853F', // Senegal — verde
+    1501: '#F77F00', // Costa do Marfim — laranja
+};
+
+// Cores alternativas (segundo uniforme / away kit)
+const CORES_ALT = {
+    6:    '#003087', // Brasil — azul
+    26:   '#FFFFFF', // Argentina — branco
+    9:    '#003087', // Espanha — azul
+    2:    '#FFFFFF', // França — branco
+    25:   '#FFFFFF', // Alemanha — branco
+    27:   '#006600', // Portugal — verde
+    10:   '#FFFFFF', // Inglaterra — branco
+    15:   '#003087', // Suíça — azul
+    1118: '#003087', // Holanda — azul
+    12:   '#003087', // Japão — azul
+    8:    '#003087', // Colômbia — azul
+    16:   '#C8102E', // México — vermelho
+    2384: '#C8102E', // EUA — vermelho
+    31:   '#006233', // Marrocos — verde
+    1090: '#C8102E', // Noruega — vermelho
+    5529: '#000000', // Canadá — preto
+    5:    '#FFD700', // Suécia — amarelo
+    3:    '#003087', // Croácia — azul
+    7:    '#000000', // Uruguai — preto
+    17:   '#003087', // Coreia do Sul — azul
+    22:   '#FFFFFF', // Irã — branco
+    32:   '#000000', // Egito — preto
+    1531: '#FFD700', // África do Sul — amarelo
+    20:   '#003087', // Austrália — azul
+    1108: '#C8102E', // Escócia — vermelho
+    1:    '#C8102E', // Bélgica — vermelho
+    1532: '#C8102E', // Argélia — vermelho
+    1113: '#FFD700', // Bósnia — amarelo
+    2380: '#003087', // Paraguai — azul
+    1533: '#C8102E', // Cabo Verde — vermelho
+    1504: '#C60B1E', // Gana — vermelho
+    775:  '#FFFFFF', // Áustria — branco
+    1508: '#FFD100', // Congo DR — amarelo
+    2382: '#003087', // Equador — azul
+};
+
+function corSelecao(homeId, awayId) {
+    const corH = CORES_SELECOES[homeId] || 'var(--green-1)';
+    if (awayId === undefined) return corH;
+    const corA = CORES_SELECOES[awayId] || 'var(--amber)';
+
+    const conflito = corH.toLowerCase() === corA.toLowerCase();
+    const corHFinal = corH;
+    const corAFinal = conflito
+        ? (CORES_ALT[awayId] || 'var(--amber)')
+        : corA;
+    return { home: corHFinal, away: corAFinal };
+}
+
 document.getElementById('btn-teste-audio').addEventListener('click', () => {
     somGol.currentTime = 0;
     somGol.play().catch(() => {});
@@ -112,6 +215,11 @@ function renderizarDetalhes(fixtureId, dados) {
         const statusShort = match.fixture.status.short;
         const isLive = STATUS_LIVE.includes(statusShort);
         const elapsed = match.fixture.status.elapsed;
+        const cores = corSelecao(match.teams.home.id, match.teams.away.id);
+        const corHome = cores.home;
+        const corAway = cores.away;
+        document.getElementById('conteudo-estatisticas').style.setProperty('--bar-home', corHome);
+        document.getElementById('conteudo-estatisticas').style.setProperty('--bar-away', corAway);
 
         let statusTexto = '';
         let dotHtml = '';
@@ -182,7 +290,7 @@ function renderizarDetalhes(fixtureId, dados) {
             return `
                 <div class="stat-row">
                     <span class="stat-val">${exibeH}</span>
-                    <div style="flex:1;display:flex;flex-direction:column;gap:3px;">
+                    <div class="stat-col-center">
                         <span class="stat-nome">${item.label}</span>
                         <div class="stat-barra-container">
                             <div class="stat-barra-home" style="width:${pctH}%"></div>
@@ -224,9 +332,6 @@ function renderizarDetalhes(fixtureId, dados) {
 
                 const desc = e.player?.name || '—';
 
-                // Minuto sempre à esquerda.
-                // Casa  → [min'] | [icone] nome  | (vazio)
-                // Fora  → [min'] | (vazio)        | nome [icone]
                 const conteudoHome = isHome
                     ? `<span class="evento-icone">${icone}</span><span class="evento-nome">${desc}${detalhe ? ` <span class="evento-detalhe">${detalhe}</span>` : ''}</span>`
                     : '';
@@ -408,8 +513,13 @@ async function atualizarPainel() {
             }).join('');
         }
 
+        const modoTorneio = document.getElementById('app-layout').classList.contains('modo-torneio');
+        const qtdEncerrados = modoTorneio ? 3 : 1;
+        const tituloHistory = document.getElementById('history-title-label');
+        if (tituloHistory) tituloHistory.innerText = modoTorneio ? 'Últimos Resultados' : 'Último Resultado';
+
         historyContent.innerHTML = encerrados.length > 0
-            ? criarBlocoPartida(encerrados[0])
+            ? encerrados.slice(0, qtdEncerrados).map(m => criarBlocoPartida(m)).join('')
             : '<div style="color:var(--text-muted);text-align:center;font-size:12px;">Sem resultados</div>';
 
         primeiraCargaMain = false;
@@ -433,3 +543,270 @@ async function atualizarPainel() {
 }
 
 atualizarPainel();
+
+/* =============================================
+   PAINEL DE TORNEIO
+   ============================================= */
+let torneioCarregado = false;
+
+document.getElementById('btn-toggle-torneio').addEventListener('click', async function () {
+    const layout = document.getElementById('app-layout');
+    const ativo = layout.classList.toggle('modo-torneio');
+    document.body.classList.toggle('modo-torneio-ativo', ativo);
+    this.innerHTML = ativo
+        ? '←'
+        : '<img src="assets/trophy-icon.png" alt="Torneio" class="btn-icon-img">';
+    this.style.color = ativo ? '#fff' : '';
+
+    if (!ativo) {
+        const tituloLabel = document.getElementById('history-title-label');
+        if (tituloLabel) tituloLabel.innerText = 'Último Resultado';
+        const historyContent = document.getElementById('history-content');
+        const encerrados = Object.values(cachePartidas)
+            .filter(m => STATUS_FIM.includes(m.fixture.status.short))
+            .sort((a, b) => new Date(b.fixture.date) - new Date(a.fixture.date));
+        if (historyContent && encerrados.length > 0) {
+            historyContent.innerHTML = criarBlocoPartida(encerrados[0]);
+        }
+        return;
+    }
+
+    if (ativo) {
+        renderizarRecentesTorneio();
+
+        if (torneioCarregado) {
+            renderizarBracket(null); 
+        }
+
+        if (!torneioCarregado) {
+            document.getElementById('grupos-rodape').innerHTML =
+                '<span style="color:var(--text-muted);font-size:11px;padding:10px;display:block;text-align:center;">Carregando grupos...</span>';
+            await buscarEConstruirTorneio();
+        }
+    }
+});
+
+async function buscarEConstruirTorneio() {
+    try {
+        const res = await fetch(`${URL_PROXY}?action=standings`);
+        if (!res.ok) throw new Error('Erro na rede');
+        const data = await res.json();
+        if (!data.response || data.response.length === 0) throw new Error('Sem dados');
+
+        const todasEntradas = data.response[0].league.standings;
+
+        const tabelaTerceiros = todasEntradas.find(g => g[0]?.group === 'Group Stage') ?? [];
+        const top8TerceiroIds = new Set(
+            tabelaTerceiros.filter(t => t.rank <= 8).map(t => t.team.id)
+        );
+
+        renderizarGrupos(todasEntradas, top8TerceiroIds);
+        renderizarBracket(todasEntradas);
+        torneioCarregado = true;
+    } catch (e) {
+        console.error('Falha ao carregar torneio:', e);
+        document.getElementById('grupos-rodape').innerHTML =
+            '<span style="color:var(--amber);font-size:11px;padding:10px;display:block;text-align:center;">Falha ao carregar. Tente novamente.</span>';
+        torneioCarregado = false;
+    }
+}
+
+function renderizarRecentesTorneio() {
+    const historyContent = document.getElementById('history-content');
+    const tituloLabel = document.getElementById('history-title-label');
+    if (tituloLabel) tituloLabel.innerText = 'Últimos Resultados';
+
+    const encerrados = Object.values(cachePartidas)
+        .filter(m => STATUS_FIM.includes(m.fixture.status.short))
+        .sort((a, b) => new Date(b.fixture.date) - new Date(a.fixture.date))
+        .slice(0, 3);
+
+    if (historyContent) {
+        historyContent.innerHTML = encerrados.length > 0
+            ? encerrados.map(m => criarBlocoPartida(m, false, null)).join('')
+            : '<div style="color:var(--text-muted);font-size:11px;text-align:center;padding:6px 0;">Sem resultados recentes</div>';
+    }
+}
+
+function renderizarBracket(standingsData) {
+    const slotReal = (m) => {
+        const d = new Date(m.fixture.date);
+        const dia = String(d.getDate()).padStart(2,'0');
+        const mes = String(d.getMonth()+1).padStart(2,'0');
+        const hora = d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+        const golH = m.goals.home, golA = m.goals.away;
+        const temGol = golH !== null && golA !== null;
+        const wH = m.teams.home.winner === true;
+        const wA = m.teams.away.winner === true;
+
+        const isTbdA = !m.teams.home.id || (m.teams.home.name && m.teams.home.name.toUpperCase() === 'TBD');
+        const isTbdB = !m.teams.away.id || (m.teams.away.name && m.teams.away.name.toUpperCase() === 'TBD');
+
+        const rowA = isTbdA
+            ? `<span class="slot-sig tbd">TBD</span>`
+            : `<img src="${m.teams.home.logo}" class="slot-logo"><span class="slot-sig">${sigla(m.teams.home.name)}</span>${temGol ? `<span class="slot-score${wH ? ' slot-score-win' : ''}">${golH}</span>` : ''}`;
+
+        const rowB = isTbdB
+            ? `<span class="slot-sig tbd">TBD</span>`
+            : `<img src="${m.teams.away.logo}" class="slot-logo"><span class="slot-sig">${sigla(m.teams.away.name)}</span>${temGol ? `<span class="slot-score${wA ? ' slot-score-win' : ''}">${golA}</span>` : ''}`;
+
+        const dataTexto = (m.fixture.status.short === 'TBD' || (isTbdA && isTbdB)) ? 'A definir' : `${dia}/${mes} ${hora}`;
+
+        return `<div class="match-slot">
+            <div class="slot-team-row${wH && !isTbdA ? ' slot-winner' : ''}">${rowA}</div>
+            <div class="slot-team-row${wA && !isTbdB ? ' slot-winner' : ''}">${rowB}</div>
+            <span class="slot-data">${dataTexto}</span>
+        </div>`;
+    };
+
+    const slotTbd = () => `<div class="match-slot slot-tbd">
+        <div class="slot-team-row"><span class="slot-sig tbd">TBD</span></div>
+        <div class="slot-team-row"><span class="slot-sig tbd">TBD</span></div>
+        <span class="slot-data">A definir</span>
+    </div>`;
+
+    const coluna = (slots) => {
+        const qtd = slots.length;
+        return `<div class="bracket-col" data-slots="${qtd}">${slots.join('')}</div>`;
+    };
+
+    const todasElim = Object.values(cachePartidas)
+        .filter(m => !((m.league?.round ?? '').toLowerCase().includes('group')))
+        .sort((a, b) => new Date(a.fixture.date) - new Date(b.fixture.date));
+
+    const porFase = { r32: [], r16: [], qf: [], sf: [], final: [], third: [] };
+    todasElim.forEach(m => {
+        const r = (m.league?.round ?? '').toLowerCase();
+        if (r.includes('32') || r.includes('round of 32') || r.includes('16 avos')) porFase.r32.push(m);
+        else if (r.includes('16') || r.includes('round of 16') || r.includes('oitavas')) porFase.r16.push(m);
+        else if (r.includes('quarter') || r.includes('quartas')) porFase.qf.push(m);
+        else if (r.includes('semi') || r.includes('semis')) porFase.sf.push(m);
+        else if (r.includes('3rd') || r.includes('terceiro') || r.includes('third')) porFase.third.push(m);
+        else if (r.includes('final')) porFase.final.push(m);
+    });
+
+    // --- NOVA LÓGICA DE DISTRIBUIÇÃO E ESPAÇOS VAZIOS ---
+    
+    // Função universal para organizar as partidas de uma fase nos slots visuais corretos
+    const organizarFase = (partidasCronologicas, totalSlotsFase, mapaOrdemVisual) => {
+        // Cria um array exato com o número de slots necessários (garante que os espaços vazios vão existir)
+        const slotsVisuais = new Array(totalSlotsFase).fill(null);
+
+        // Opcional: Se precisar forçar uma partida específica em um bloco usando o ID da API.
+        // Se a API carregar incompleta, essa é a forma mais segura. 
+        const mapaIDs = {
+            // Exemplo: 'ID_DA_PARTIDA': POSICAO_VISUAL (0 a 15)
+            // '1234567': 0, 
+        };
+
+        partidasCronologicas.forEach((match, indexCronologico) => {
+            // Define o índice visual. Tenta pelo ID primeiro, se não achar, usa a ordem cronológica
+            let posicaoVisual = mapaIDs[match.fixture.id];
+            
+            if (posicaoVisual === undefined) {
+                posicaoVisual = mapaOrdemVisual[indexCronologico];
+            }
+
+            // Se o mapa definiu um destino válido, renderizamos a partida lá
+            if (posicaoVisual !== undefined && posicaoVisual < totalSlotsFase) {
+                slotsVisuais[posicaoVisual] = slotReal(match);
+            }
+        });
+
+        // Preenche tudo que sobrou (que a API não enviou ainda) com blocos TBD puros
+        for (let i = 0; i < totalSlotsFase; i++) {
+            if (!slotsVisuais[i]) {
+                slotsVisuais[i] = slotTbd();
+            }
+        }
+
+        return slotsVisuais;
+    };
+
+    // MAPAS DE CHAVEAMENTO (Ordem Cronológica -> Slot Visual)
+    // Os números representam para onde o 1º jogo cronológico (0), 2º jogo (1) etc., devem ir.
+    // Lado esquerdo da tela = primeira metade dos números. Lado direito = segunda metade.
+    
+    // R32: 16 slots. Lado esquerdo: 0 a 7. Lado direito: 8 a 15.
+    // Exemplo: O 1º jogo (índice 0) vai pro Slot 0 (Esq 1). O 2º jogo (índice 1) vai pro Slot 8 (Dir 1).
+    const mapaR32 = [0, 8, 1, 9, 2, 10, 3, 11, 4, 12, 5, 13, 6, 14, 7, 15];
+    const slotsR32Visuais = organizarFase(porFase.r32, 16, mapaR32);
+    
+    // R16: 8 slots. Lado esquerdo: 0 a 3. Lado direito: 4 a 7.
+    const mapaR16 = [0, 4, 1, 5, 2, 6, 3, 7];
+    const slotsR16Visuais = organizarFase(porFase.r16, 8, mapaR16);
+
+    // QF: 4 slots. Lado esquerdo: 0 a 1. Lado direito: 2 a 3.
+    const mapaQF = [0, 2, 1, 3];
+    const slotsQFVisuais = organizarFase(porFase.qf, 4, mapaQF);
+
+    // SF: 2 slots. Lado esquerdo: 0. Lado direito: 1.
+    const mapaSF = [0, 1];
+    const slotsSFVisuais = organizarFase(porFase.sf, 2, mapaSF);
+
+    // ── Inserir no HTML ────────────────────────────────────────────────────
+    const leftHtml =
+        coluna(slotsR32Visuais.slice(0, 8)) +
+        coluna(slotsR16Visuais.slice(0, 4)) +
+        coluna(slotsQFVisuais.slice(0, 2)) +
+        coluna(slotsSFVisuais.slice(0, 1));
+
+    const rightHtml =
+        coluna(slotsSFVisuais.slice(1, 2)) +
+        coluna(slotsQFVisuais.slice(2, 4)) +
+        coluna(slotsR16Visuais.slice(4, 8)) +
+        coluna(slotsR32Visuais.slice(8, 16));
+
+    document.getElementById('bracket-left').innerHTML  = leftHtml;
+    document.getElementById('bracket-right').innerHTML = rightHtml;
+
+    // ── Final e 3º Lugar ───────────────────────────────────────────────────
+    const finalEl = document.querySelector('#bracket-final .match-slot');
+    const thirdEl = document.querySelector('#bracket-bronze .match-slot');
+    
+    if (finalEl) {
+        const mF = porFase.final[0];
+        finalEl.outerHTML = mF ? slotReal(mF) : slotTbd().replace('slot-tbd','final-slot');
+    }
+    if (thirdEl) {
+        const mT = porFase.third[0];
+        thirdEl.outerHTML = mT ? slotReal(mT) : slotTbd();
+    }
+}
+
+function renderizarGrupos(todasEntradas, top8TerceiroIds) {
+    const scroller = document.getElementById('grupos-rodape');
+
+    const gruposValidos = todasEntradas.filter(grupo =>
+        /^Group\s+[A-L]$/i.test(grupo[0]?.group ?? '')
+    );
+
+    scroller.innerHTML = gruposValidos.map((grupo, i) => {
+        const nomeGrupo = grupo[0].group.replace(/Group/i, 'Grupo');
+        const linhasTime = grupo.map((time, idx) => {
+            const top2 = idx < 2;
+            const top4Terceiro = idx === 2 && (top8TerceiroIds?.has(time.team.id) ?? false);
+            let corBorda = 'transparent';
+            let corNome = 'var(--text-muted)';
+            let pesoFonte = '400';
+            if (top2) { corBorda = 'var(--green-1)'; corNome = 'var(--text-primary)'; pesoFonte = '700'; }
+            else if (top4Terceiro) { corBorda = 'var(--amber)'; corNome = 'var(--amber)'; pesoFonte = '600'; }
+
+            return `
+                <div class="grupo-linha-time" style="border-left-color:${corBorda}">
+                    <div class="grupo-linha-esq">
+                        <span class="grupo-rank">${time.rank}</span>
+                        <img src="${time.team.logo}" class="grupo-logo" alt="${time.team.name}">
+                        <span class="grupo-sigla" style="color:${corNome};font-weight:${pesoFonte};">${sigla(time.team.name)}</span>
+                    </div>
+                    <span class="grupo-pts">${time.points}</span>
+                </div>`;
+        }).join('');
+
+        return `
+            <div class="grupo-card">
+                <div class="grupo-card-titulo">${nomeGrupo}</div>
+                ${linhasTime}
+            </div>`;
+    }).join('');
+}
