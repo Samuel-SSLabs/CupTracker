@@ -252,13 +252,16 @@ body {
         position: fixed; 
     }
     .powered-by {
-        position: static;
-        flex-shrink: 0;
-        opacity: 0.6;
-        pointer-events: auto;
-        align-items: center;
-        padding: 12px 0 calc(12px + env(safe-area-inset-bottom));
-        background-color: #131517;
+        display: none !important;
+    }
+    #btn-toggle-torneio {
+        display: none !important;
+    }
+    .painel-torneio {
+        display: none !important;
+    }
+    #app-layout.modo-torneio .painel-jogos {
+        width: 100% !important;
     }
 }
 .header-title {
