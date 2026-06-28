@@ -318,7 +318,7 @@ async function atualizarPainel() {
     const dataInicio = new Date(hoje);
     dataInicio.setDate(hoje.getDate() - 1);
     const dataFim = new Date(hoje);
-    dataFim.setDate(hoje.getDate() + 3);
+    dataFim.setDate(hoje.getDate() + 30); // cobre toda a fase eliminatória
     const urlFinal = `${URL_PROXY}?dateFrom=${fmtData(dataInicio)}&dateTo=${fmtData(dataFim)}`;
     try {
         const response = await fetch(urlFinal);
@@ -503,44 +503,41 @@ function renderizarBracket(standingsData) {
         else if (r.includes('3rd') || r.includes('terceiro') || r.includes('third')) porFase.third.push(m);
         else if (r.includes('final')) porFase.final.push(m);
     });
-        const organizarFase = (partidasCronologicas, totalSlotsFase, mapaOrdemVisual) => {
-                const slotsVisuais = new Array(totalSlotsFase).fill(null);
-                        const mapaIDs = {
-                                };
-        partidasCronologicas.forEach((match, indexCronologico) => {
-                        let posicaoVisual = mapaIDs[match.fixture.id];
-            if (posicaoVisual === undefined) {
-                posicaoVisual = mapaOrdemVisual[indexCronologico];
-            }
-                        if (posicaoVisual !== undefined && posicaoVisual < totalSlotsFase) {
-                slotsVisuais[posicaoVisual] = slotReal(match);
-            }
+    // organizarFase removida — lados separados por índice par/ímpar
+        // A API entrega partidas em ordem cronológica.
+    // Convenção visual: jogo 1 (índice par) → lado esquerdo, jogo 2 (índice ímpar) → lado direito.
+    // Dentro de cada lado, ordem de cima para baixo = ordem cronológica dos jogos daquele lado.
+
+    const separarLados = (partidas, totalEsq, totalDir) => {
+        const esq = [], dir = [];
+        partidas.forEach((m, i) => {
+            if (i % 2 === 0) esq.push(m); else dir.push(m);
         });
-                for (let i = 0; i < totalSlotsFase; i++) {
-            if (!slotsVisuais[i]) {
-                slotsVisuais[i] = slotTbd();
-            }
-        }
-        return slotsVisuais;
+        // Preenche com TBD se faltar
+        while (esq.length < totalEsq) esq.push(null);
+        while (dir.length < totalDir) dir.push(null);
+        return {
+            esq: esq.slice(0, totalEsq).map(m => m ? slotReal(m) : slotTbd()),
+            dir: dir.slice(0, totalDir).map(m => m ? slotReal(m) : slotTbd()),
+        };
     };
-            const mapaR32 = [0, 8, 1, 9, 2, 10, 3, 11, 4, 12, 5, 13, 6, 14, 7, 15];
-    const slotsR32Visuais = organizarFase(porFase.r32, 16, mapaR32);
-        const mapaR16 = [0, 4, 1, 5, 2, 6, 3, 7];
-    const slotsR16Visuais = organizarFase(porFase.r16, 8, mapaR16);
-        const mapaQF = [0, 2, 1, 3];
-    const slotsQFVisuais = organizarFase(porFase.qf, 4, mapaQF);
-        const mapaSF = [0, 1];
-    const slotsSFVisuais = organizarFase(porFase.sf, 2, mapaSF);
-        const leftHtml =
-        coluna(slotsR32Visuais.slice(0, 8)) +
-        coluna(slotsR16Visuais.slice(0, 4)) +
-        coluna(slotsQFVisuais.slice(0, 2)) +
-        coluna(slotsSFVisuais.slice(0, 1));
+
+    const r32 = separarLados(porFase.r32, 8, 8);
+    const r16 = separarLados(porFase.r16, 4, 4);
+    const qf  = separarLados(porFase.qf,  2, 2);
+    const sf  = separarLados(porFase.sf,  1, 1);
+
+    const leftHtml =
+        coluna(r32.esq) +
+        coluna(r16.esq) +
+        coluna(qf.esq)  +
+        coluna(sf.esq);
     const rightHtml =
-        coluna(slotsSFVisuais.slice(1, 2)) +
-        coluna(slotsQFVisuais.slice(2, 4)) +
-        coluna(slotsR16Visuais.slice(4, 8)) +
-        coluna(slotsR32Visuais.slice(8, 16));
+        coluna(sf.dir)  +
+        coluna(qf.dir)  +
+        coluna(r16.dir) +
+        coluna(r32.dir);
+
     document.getElementById('bracket-left').innerHTML  = leftHtml;
     document.getElementById('bracket-right').innerHTML = rightHtml;
         const finalEl = document.querySelector('#bracket-final .match-slot');
