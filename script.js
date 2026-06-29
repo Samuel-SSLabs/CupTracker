@@ -279,22 +279,34 @@ function criarBlocoPartida(match, isLive, quemMarcou) {
     const isLiveStatus = STATUS_LIVE.includes(statusShort);
     const isPaused = statusShort === 'HT';
     const isFinished = STATUS_FIM.includes(statusShort);
+    const isPenaltyShootout = statusShort === 'P';
+    const isPenaltyFim = statusShort === 'PEN';
     const podeClicar = temDetalhes(statusShort);
+    const penHome = match.score?.penalty?.home;
+    const penAway = match.score?.penalty?.away;
+    const temPen = penHome !== null && penHome !== undefined && penAway !== null && penAway !== undefined;
     let infoCentral = '';
     let infoMinuto = '';
     if (isLiveStatus) {
-        const elapsed = match.fixture.status.elapsed;
-        const extra = match.fixture.status.extra;
-        infoMinuto = elapsed ? (extra ? `${elapsed}+${extra}'` : `${elapsed}'`) : '';
+        if (isPenaltyShootout) {
+            infoMinuto = 'Pênaltis';
+        } else {
+            const elapsed = match.fixture.status.elapsed;
+            const extra = match.fixture.status.extra;
+            infoMinuto = elapsed ? (extra ? `${elapsed}+${extra}'` : `${elapsed}'`) : '';
+        }
         infoCentral = '<span class="live-dot"></span> Ao Vivo';
     } else if (isPaused) {
         infoMinuto = 'Intervalo';
         infoCentral = ' ';
     } else if (isFinished) {
-        infoCentral = `${dia}/${mes} - Fim`;
+        infoCentral = isPenaltyFim ? `${dia}/${mes} - Pên.` : `${dia}/${mes} - Fim`;
     } else {
         infoCentral = `${dia}/${mes} ${horaMinuto}`;
     }
+    const penHtml = temPen && (isPenaltyShootout || isPenaltyFim)
+        ? `<span class="score-pen">${penHome} x ${penAway} <span class="score-pen-label">pên.</span></span>`
+        : '';
     const onclickAttr = podeClicar ? `onclick="abrirMenuDetalhes(${match.fixture.id})"` : '';
     const classesExtra = [
         isLive ? 'live' : '',
@@ -314,6 +326,7 @@ function criarBlocoPartida(match, isLive, quemMarcou) {
                     <span class="score-sep">x</span>
                     <span class="score-num ${quemMarcou === 'away' ? 'gol-marcado' : ''}" style="color:${corGolB};">${golB}</span>
                 </div>
+                ${penHtml}
                 <span class="status-time">${infoCentral}</span>
             </div>
             <div class="team-side right">
@@ -516,58 +529,26 @@ function renderizarBracket(standingsData) {
         else if (r.includes('3rd') || r.includes('terceiro') || r.includes('third')) porFase.third.push(m);
         else if (r.includes('final')) porFase.final.push(m);
     });
-    // ═══════════════════════════════════════════════════════════════
-    // CHAVEAMENTO OFICIAL R32 — Copa 2026
-    // Cada par é [id_time_casa, id_time_fora] conforme o sorteio FIFA.
-    // Os primeiros 8 pares → lado ESQUERDO (cima → baixo)
-    // Os últimos 8 pares  → lado DIREITO  (cima → baixo)
-    //
-    // Para corrigir a posição de uma partida, mova o par aqui.
-    // Os IDs dos times estão no objeto CORES_SELECOES no topo do arquivo.
-    // ═══════════════════════════════════════════════════════════════
-    const BRACKET_R32_PARES = [
-        // ── ESQUERDO (cima → baixo) ──────────────────────────────
-        [1531, 5529],  // RSA  ×  CAN
-        [25,   2380],  // GER  ×  PAR
-        [1501, 1090],  // CIV  ×  NOR
-        [16,   2382],  // MEX  ×  ECU
-        [1,    22  ],  // BEL  ×  SEN
-        [9,    775 ],  // ESP  ×  AUT
-        [15,   1532],  // SUI  ×  ALG
-        [2,    5   ],  // FRA  ×  SWE
-        // ── DIREITO (cima → baixo) ───────────────────────────────
-        [6,    12  ],  // BRA  ×  JPN
-        [1118, 31  ],  // NED  ×  MAR
-        [26,   1533],  // ARG  ×  CAP
-        [10,   1508],  // ENG  ×  CON
-        [2384, 1113],  // USA  ×  BOS
-        [27,   3   ],  // POR  ×  CRO
-        [20,   32  ],  // AUS  ×  EGY
-        [8,    1504],  // COL  ×  GHA
-    ];
+    // organizarFase removida — lados separados por índice par/ímpar
+        // A API entrega partidas em ordem cronológica.
+    // Convenção visual: jogo 1 (índice par) → lado esquerdo, jogo 2 (índice ímpar) → lado direito.
+    // Dentro de cada lado, ordem de cima para baixo = ordem cronológica dos jogos daquele lado.
 
-    const ordenarR32 = (partidas) => {
-        return BRACKET_R32_PARES.map(([idA, idB]) => {
-            return partidas.find(m =>
-                (m.teams.home.id === idA && m.teams.away.id === idB) ||
-                (m.teams.home.id === idB && m.teams.away.id === idA)
-            ) ?? null;
+    const separarLados = (partidas, totalEsq, totalDir) => {
+        const esq = [], dir = [];
+        partidas.forEach((m, i) => {
+            if (i % 2 === 0) esq.push(m); else dir.push(m);
         });
-    };
-
-    const separarLados = (partidas, totalEsq, totalDir, fixados = false) => {
-        const lista = fixados ? ordenarR32(partidas) : partidas;
-        const esq = lista.slice(0, totalEsq);
-        const dir = lista.slice(totalEsq, totalEsq + totalDir);
+        // Preenche com TBD se faltar
         while (esq.length < totalEsq) esq.push(null);
         while (dir.length < totalDir) dir.push(null);
         return {
-            esq: esq.map(m => m ? slotReal(m) : slotTbd()),
-            dir: dir.map(m => m ? slotReal(m) : slotTbd()),
+            esq: esq.slice(0, totalEsq).map(m => m ? slotReal(m) : slotTbd()),
+            dir: dir.slice(0, totalDir).map(m => m ? slotReal(m) : slotTbd()),
         };
     };
 
-    const r32 = separarLados(porFase.r32, 8, 8, true); // usa ordem fixa
+    const r32 = separarLados(porFase.r32, 8, 8);
     const r16 = separarLados(porFase.r16, 4, 4);
     const qf  = separarLados(porFase.qf,  2, 2);
     const sf  = separarLados(porFase.sf,  1, 1);
