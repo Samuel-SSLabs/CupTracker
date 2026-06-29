@@ -216,6 +216,26 @@ body {
 .powered-by-logos { display: flex; align-items: center; gap: 10px; }
 .powered-by-logos img { height: 20px; object-fit: contain; }
 .powered-by-logos img:last-child { transform: scale(0.9); transform-origin: center; image-rendering: -webkit-optimize-contrast; }
+.score-pen {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--amber);
+    letter-spacing: 0.5px;
+    margin-top: 1px;
+}
+.score-pen-label {
+    font-size: 9px;
+    font-weight: 500;
+    color: var(--text-muted);
+    text-transform: lowercase;
+}
+.modal-pen-score {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--amber);
+    letter-spacing: 0.5px;
+    margin-bottom: 2px;
+}
 @keyframes girar { to { transform: rotate(360deg); } }
 @keyframes pulsarPonto { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.35; transform: scale(0.75); } }
 @keyframes brilhoGol { 0%, 100% { text-shadow: 0 0 4px rgba(61,255,160,0.18); } 50% { text-shadow: 0 0 10px rgba(61,255,160,0.45), 0 0 18px rgba(61,255,160,0.28); } }
