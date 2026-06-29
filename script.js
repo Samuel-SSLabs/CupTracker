@@ -108,23 +108,35 @@ function renderizarDetalhes(fixtureId, dados) {
         const golB = match.goals.away !== null ? match.goals.away : '-';
         const statusShort = match.fixture.status.short;
         const isLive = STATUS_LIVE.includes(statusShort);
+        const isPenaltyShootout = statusShort === 'P';
+        const isPenaltyFim = statusShort === 'PEN';
         const elapsed = match.fixture.status.elapsed;
         const cores = corSelecao(match.teams.home.id, match.teams.away.id);
         const corHome = cores.home;
         const corAway = cores.away;
         document.getElementById('conteudo-estatisticas').style.setProperty('--bar-home', corHome);
         document.getElementById('conteudo-estatisticas').style.setProperty('--bar-away', corAway);
+        const penHome = match.score?.penalty?.home;
+        const penAway = match.score?.penalty?.away;
+        const temPen = penHome !== null && penHome !== undefined && penAway !== null && penAway !== undefined;
         let statusTexto = '';
         let dotHtml = '';
         if (isLive) {
             dotHtml = '<span class="live-dot"></span>';
-            const extra = match.fixture.status.extra;
-            statusTexto = elapsed ? (extra ? `${elapsed}+${extra}' — Ao Vivo` : `${elapsed}' — Ao Vivo`) : 'Ao Vivo';
+            if (isPenaltyShootout) {
+                statusTexto = 'Pênaltis — Ao Vivo';
+            } else {
+                const extra = match.fixture.status.extra;
+                statusTexto = elapsed ? (extra ? `${elapsed}+${extra}' — Ao Vivo` : `${elapsed}' — Ao Vivo`) : 'Ao Vivo';
+            }
         } else if (statusShort === 'HT') {
             statusTexto = 'Intervalo';
         } else if (STATUS_FIM.includes(statusShort)) {
-            statusTexto = 'Encerrado';
+            statusTexto = isPenaltyFim ? 'Encerrado — Pênaltis' : 'Encerrado';
         }
+        const modalPenHtml = temPen && (isPenaltyShootout || isPenaltyFim)
+            ? `<span class="modal-pen-score">${penHome} x ${penAway} <span class="score-pen-label">nos pênaltis</span></span>`
+            : '';
         htmlPlacar = `
             <div class="modal-placar ${isLive ? 'live' : ''}">
                 <div class="modal-team-side">
@@ -133,6 +145,7 @@ function renderizarDetalhes(fixtureId, dados) {
                 </div>
                 <div class="modal-center">
                     <span class="modal-score">${golA} x ${golB}</span>
+                    ${modalPenHtml}
                     <span class="modal-status">${dotHtml}${statusTexto}</span>
                 </div>
                 <div class="modal-team-side">
@@ -266,22 +279,34 @@ function criarBlocoPartida(match, isLive, quemMarcou) {
     const isLiveStatus = STATUS_LIVE.includes(statusShort);
     const isPaused = statusShort === 'HT';
     const isFinished = STATUS_FIM.includes(statusShort);
+    const isPenaltyShootout = statusShort === 'P';
+    const isPenaltyFim = statusShort === 'PEN';
     const podeClicar = temDetalhes(statusShort);
+    const penHome = match.score?.penalty?.home;
+    const penAway = match.score?.penalty?.away;
+    const temPen = penHome !== null && penHome !== undefined && penAway !== null && penAway !== undefined;
     let infoCentral = '';
     let infoMinuto = '';
     if (isLiveStatus) {
-        const elapsed = match.fixture.status.elapsed;
-        const extra = match.fixture.status.extra;
-        infoMinuto = elapsed ? (extra ? `${elapsed}+${extra}'` : `${elapsed}'`) : '';
+        if (isPenaltyShootout) {
+            infoMinuto = 'Pênaltis';
+        } else {
+            const elapsed = match.fixture.status.elapsed;
+            const extra = match.fixture.status.extra;
+            infoMinuto = elapsed ? (extra ? `${elapsed}+${extra}'` : `${elapsed}'`) : '';
+        }
         infoCentral = '<span class="live-dot"></span> Ao Vivo';
     } else if (isPaused) {
         infoMinuto = 'Intervalo';
         infoCentral = ' ';
     } else if (isFinished) {
-        infoCentral = `${dia}/${mes} - Fim`;
+        infoCentral = isPenaltyFim ? `${dia}/${mes} - Pên.` : `${dia}/${mes} - Fim`;
     } else {
         infoCentral = `${dia}/${mes} ${horaMinuto}`;
     }
+    const penHtml = temPen && (isPenaltyShootout || isPenaltyFim)
+        ? `<span class="score-pen">${penHome} x ${penAway} <span class="score-pen-label">pên.</span></span>`
+        : '';
     const onclickAttr = podeClicar ? `onclick="abrirMenuDetalhes(${match.fixture.id})"` : '';
     const classesExtra = [
         isLive ? 'live' : '',
@@ -301,6 +326,7 @@ function criarBlocoPartida(match, isLive, quemMarcou) {
                     <span class="score-sep">x</span>
                     <span class="score-num ${quemMarcou === 'away' ? 'gol-marcado' : ''}" style="color:${corGolB};">${golB}</span>
                 </div>
+                ${penHtml}
                 <span class="status-time">${infoCentral}</span>
             </div>
             <div class="team-side right">
