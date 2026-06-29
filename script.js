@@ -108,35 +108,23 @@ function renderizarDetalhes(fixtureId, dados) {
         const golB = match.goals.away !== null ? match.goals.away : '-';
         const statusShort = match.fixture.status.short;
         const isLive = STATUS_LIVE.includes(statusShort);
-        const isPenaltyShootout = statusShort === 'P';
-        const isPenaltyFim = statusShort === 'PEN';
         const elapsed = match.fixture.status.elapsed;
         const cores = corSelecao(match.teams.home.id, match.teams.away.id);
         const corHome = cores.home;
         const corAway = cores.away;
         document.getElementById('conteudo-estatisticas').style.setProperty('--bar-home', corHome);
         document.getElementById('conteudo-estatisticas').style.setProperty('--bar-away', corAway);
-        const penHome = match.score?.penalty?.home;
-        const penAway = match.score?.penalty?.away;
-        const temPen = penHome !== null && penHome !== undefined && penAway !== null && penAway !== undefined;
         let statusTexto = '';
         let dotHtml = '';
         if (isLive) {
             dotHtml = '<span class="live-dot"></span>';
-            if (isPenaltyShootout) {
-                statusTexto = 'Pênaltis — Ao Vivo';
-            } else {
-                const extra = match.fixture.status.extra;
-                statusTexto = elapsed ? (extra ? `${elapsed}+${extra}' — Ao Vivo` : `${elapsed}' — Ao Vivo`) : 'Ao Vivo';
-            }
+            const extra = match.fixture.status.extra;
+            statusTexto = elapsed ? (extra ? `${elapsed}+${extra}' — Ao Vivo` : `${elapsed}' — Ao Vivo`) : 'Ao Vivo';
         } else if (statusShort === 'HT') {
             statusTexto = 'Intervalo';
         } else if (STATUS_FIM.includes(statusShort)) {
-            statusTexto = isPenaltyFim ? 'Encerrado — Pênaltis' : 'Encerrado';
+            statusTexto = 'Encerrado';
         }
-        const modalPenHtml = temPen && (isPenaltyShootout || isPenaltyFim)
-            ? `<span class="modal-pen-score">${penHome} x ${penAway} <span class="score-pen-label">nos pênaltis</span></span>`
-            : '';
         htmlPlacar = `
             <div class="modal-placar ${isLive ? 'live' : ''}">
                 <div class="modal-team-side">
@@ -145,7 +133,6 @@ function renderizarDetalhes(fixtureId, dados) {
                 </div>
                 <div class="modal-center">
                     <span class="modal-score">${golA} x ${golB}</span>
-                    ${modalPenHtml}
                     <span class="modal-status">${dotHtml}${statusTexto}</span>
                 </div>
                 <div class="modal-team-side">
@@ -279,34 +266,22 @@ function criarBlocoPartida(match, isLive, quemMarcou) {
     const isLiveStatus = STATUS_LIVE.includes(statusShort);
     const isPaused = statusShort === 'HT';
     const isFinished = STATUS_FIM.includes(statusShort);
-    const isPenaltyShootout = statusShort === 'P';
-    const isPenaltyFim = statusShort === 'PEN';
     const podeClicar = temDetalhes(statusShort);
-    const penHome = match.score?.penalty?.home;
-    const penAway = match.score?.penalty?.away;
-    const temPen = penHome !== null && penHome !== undefined && penAway !== null && penAway !== undefined;
     let infoCentral = '';
     let infoMinuto = '';
     if (isLiveStatus) {
-        if (isPenaltyShootout) {
-            infoMinuto = 'Pênaltis';
-        } else {
-            const elapsed = match.fixture.status.elapsed;
-            const extra = match.fixture.status.extra;
-            infoMinuto = elapsed ? (extra ? `${elapsed}+${extra}'` : `${elapsed}'`) : '';
-        }
+        const elapsed = match.fixture.status.elapsed;
+        const extra = match.fixture.status.extra;
+        infoMinuto = elapsed ? (extra ? `${elapsed}+${extra}'` : `${elapsed}'`) : '';
         infoCentral = '<span class="live-dot"></span> Ao Vivo';
     } else if (isPaused) {
         infoMinuto = 'Intervalo';
         infoCentral = ' ';
     } else if (isFinished) {
-        infoCentral = isPenaltyFim ? `${dia}/${mes} - Pên.` : `${dia}/${mes} - Fim`;
+        infoCentral = `${dia}/${mes} - Fim`;
     } else {
         infoCentral = `${dia}/${mes} ${horaMinuto}`;
     }
-    const penHtml = temPen && (isPenaltyShootout || isPenaltyFim)
-        ? `<span class="score-pen">${penHome} x ${penAway} <span class="score-pen-label">pên.</span></span>`
-        : '';
     const onclickAttr = podeClicar ? `onclick="abrirMenuDetalhes(${match.fixture.id})"` : '';
     const classesExtra = [
         isLive ? 'live' : '',
@@ -326,7 +301,6 @@ function criarBlocoPartida(match, isLive, quemMarcou) {
                     <span class="score-sep">x</span>
                     <span class="score-num ${quemMarcou === 'away' ? 'gol-marcado' : ''}" style="color:${corGolB};">${golB}</span>
                 </div>
-                ${penHtml}
                 <span class="status-time">${infoCentral}</span>
             </div>
             <div class="team-side right">
@@ -529,26 +503,54 @@ function renderizarBracket(standingsData) {
         else if (r.includes('3rd') || r.includes('terceiro') || r.includes('third')) porFase.third.push(m);
         else if (r.includes('final')) porFase.final.push(m);
     });
-    // organizarFase removida — lados separados por índice par/ímpar
-        // A API entrega partidas em ordem cronológica.
-    // Convenção visual: jogo 1 (índice par) → lado esquerdo, jogo 2 (índice ímpar) → lado direito.
-    // Dentro de cada lado, ordem de cima para baixo = ordem cronológica dos jogos daquele lado.
+    // ─────────────────────────────────────────────────────────────
+    // ORDEM FIXA DO BRACKET R32 (chaveamento oficial FIFA 2026)
+    // Índices 0-7  → lado ESQUERDO  (cima → baixo)
+    // Índices 8-15 → lado DIREITO   (cima → baixo)
+    // Para corrigir posição de uma partida, basta mover o ID aqui.
+    // ─────────────────────────────────────────────────────────────
+    const BRACKET_R32_IDS = [
+        // — Esquerdo —
+        1561329, // RSA x CAN
+        1565176, // GER x PAR
+        1564789, // CIV x NOR
+        1567306, // MEX x ECU
+        1567308, // BEL x SEN
+        1567311, // ESP x AUT
+        1567312, // SUI x ALG
+        1565177, // FRA x SWE
+        // — Direito —
+        1562344, // BRA x JPN
+        1562345, // NED x MAR
+        1565179, // ARG x CAP
+        1567307, // ENG x CON
+        1562586, // USA x BOS
+        1567309, // POR x CRO
+        1565178, // AUS x EGY
+        1567310, // COL x GHA
+    ];
 
-    const separarLados = (partidas, totalEsq, totalDir) => {
-        const esq = [], dir = [];
-        partidas.forEach((m, i) => {
-            if (i % 2 === 0) esq.push(m); else dir.push(m);
-        });
-        // Preenche com TBD se faltar
+    const ordenarR32 = (partidas) => {
+        const mapa = Object.fromEntries(partidas.map(m => [m.fixture.id, m]));
+        // Segue a ordem do array fixo; jogos que não constam vão ao final
+        const conhecidos = BRACKET_R32_IDS.map(id => mapa[id] ?? null);
+        const desconhecidos = partidas.filter(m => !BRACKET_R32_IDS.includes(m.fixture.id));
+        return [...conhecidos, ...desconhecidos.map(() => null)];
+    };
+
+    const separarLados = (partidas, totalEsq, totalDir, fixados = false) => {
+        const lista = fixados ? ordenarR32(partidas) : partidas;
+        const esq = lista.slice(0, totalEsq);
+        const dir = lista.slice(totalEsq, totalEsq + totalDir);
         while (esq.length < totalEsq) esq.push(null);
         while (dir.length < totalDir) dir.push(null);
         return {
-            esq: esq.slice(0, totalEsq).map(m => m ? slotReal(m) : slotTbd()),
-            dir: dir.slice(0, totalDir).map(m => m ? slotReal(m) : slotTbd()),
+            esq: esq.map(m => m ? slotReal(m) : slotTbd()),
+            dir: dir.map(m => m ? slotReal(m) : slotTbd()),
         };
     };
 
-    const r32 = separarLados(porFase.r32, 8, 8);
+    const r32 = separarLados(porFase.r32, 8, 8, true); // usa ordem fixa
     const r16 = separarLados(porFase.r16, 4, 4);
     const qf  = separarLados(porFase.qf,  2, 2);
     const sf  = separarLados(porFase.sf,  1, 1);
