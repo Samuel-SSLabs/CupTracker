@@ -12,6 +12,7 @@ let fixtureAtualNoModal = null;
 let primeiraCargaMain = true;
 let cacheDetalhesMemoria = {};
 const somGol = new Audio('assets/audio.mp3');
+const somGolBrasil = new Audio('assets/brasil_gol.mp3');
 const SIGLAS_FIFA = {
     "Canada": "CAN", "United States": "USA", "Mexico": "MEX",
     "Curacao": "CUW", "Haiti": "HAI", "Panama": "PAN",
