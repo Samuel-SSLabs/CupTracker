@@ -391,8 +391,8 @@ body {
                 height 0.45s cubic-bezier(0.25, 1, 0.5, 1);
 }
 body.modo-torneio-ativo .tft-screen {
-    width: min(99vw, 1140px);
-    height: min(98vh, 820px);
+    width: min(99vw, 1200px);
+    height: min(98vh, 800px);
 }
 .torneio-box {
     background: linear-gradient(160deg, #0f1113, #080a0b);
