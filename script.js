@@ -1,5 +1,4 @@
 const URL_PROXY = 'https://cuptracker.sstudioslabs.workers.dev/v4/matches';
-const STATUS_LIVE = ['1H', '2H', 'ET', 'P'];
 const STATUS_LIVE_COM_HT = ['1H', '2H', 'ET', 'P', 'HT'];
 const STATUS_FIM = ['FT', 'AET', 'PEN'];
 const STATUS_COM_DETALHES = [...STATUS_LIVE_COM_HT, ...STATUS_FIM];
@@ -344,8 +343,7 @@ async function atualizarPainel() {
     const dataInicio = new Date(hoje);
     dataInicio.setDate(hoje.getDate() - 1);
     const dataFim = new Date(hoje);
-    dataFim.setDate(hoje.getDate() + 30); // cobre toda a fase eliminatória
-    const urlFinal = `${URL_PROXY}?dateFrom=${fmtData(dataInicio)}&dateTo=${fmtData(dataFim)}`;
+    dataFim.setDate(hoje.getDate() + 30);     const urlFinal = `${URL_PROXY}?dateFrom=${fmtData(dataInicio)}&dateTo=${fmtData(dataFim)}`;
     try {
         const response = await fetch(urlFinal);
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -520,7 +518,6 @@ function renderizarBracket(standingsData) {
         .filter(m => !((m.league?.round ?? '').toLowerCase().includes('group')))
         .sort((a, b) => new Date(a.fixture.date) - new Date(b.fixture.date));
     const porFase = { r32: [], r16: [], qf: [], sf: [], final: [], third: [] };
-// 1. Organiza os jogos por fase
     todasElim.forEach(m => {
         const r = (m.league?.round ?? '').toLowerCase();
         if (r.includes('32') || r.includes('round of 32') || r.includes('16 avos')) porFase.r32.push(m);
@@ -530,59 +527,44 @@ function renderizarBracket(standingsData) {
         else if (r.includes('3rd') || r.includes('terceiro') || r.includes('third')) porFase.third.push(m);
         else if (r.includes('final')) porFase.final.push(m);
     });
-
-    // 2. Nova função de mapeamento manual e preciso
     const mapearFase = (partidas, totalJogos, indicesEsq, indicesDir) => {
         const completas = new Array(totalJogos).fill(null);
         partidas.forEach((m, i) => { 
             if (i < totalJogos) completas[i] = m; 
         });
-
         return {
             esq: indicesEsq.map(i => completas[i] ? slotReal(completas[i]) : slotTbd()),
             dir: indicesDir.map(i => completas[i] ? slotReal(completas[i]) : slotTbd())
         };
     };
-
-    // 3. CHAVEAMENTO OFICIAL DA COPA DO MUNDO 2026 (FIFA)
     const r32 = mapearFase(porFase.r32, 16,
-        [0, 2, 4, 6, 8, 10, 12, 14], // Lado Esquerdo
-        [1, 3, 5, 7, 9, 11, 13, 15]  // Lado Direito
+        [2, 5, 0, 3, 11, 10, 9, 8],
+        [1, 4, 6, 7, 14, 13, 12, 15]
     );
-
     const r16 = mapearFase(porFase.r16, 8,
-        [0, 2, 4, 6], // Lado Esquerdo
-        [1, 3, 5, 7]  // Lado Direito
+        [0, 2, 4, 6],
+        [1, 3, 5, 7]
     );
-
     const qf = mapearFase(porFase.qf, 4,
-        [0, 2], // Lado Esquerdo
-        [1, 3]  // Lado Direito
+        [0, 2],
+        [1, 3]
     );
-
     const sf = mapearFase(porFase.sf, 2,
-        [0], // Lado Esquerdo
-        [1]  // Lado Direito
+        [0],
+        [1]
     );
-
-    // 4. Constrói o HTML das colunas separadas
     const leftHtml =
         coluna(r32.esq) +
         coluna(r16.esq) +
         coluna(qf.esq)  +
         coluna(sf.esq);
-
     const rightHtml =
         coluna(sf.dir)  +
         coluna(qf.dir)  +
         coluna(r16.dir) +
         coluna(r32.dir);
-
-    // 5. Aplica na tela
     document.getElementById('bracket-left').innerHTML  = leftHtml;
     document.getElementById('bracket-right').innerHTML = rightHtml;
-
-    // 6. Final e 3º Lugar
         const finalEl = document.querySelector('#bracket-final .match-slot');
     const thirdEl = document.querySelector('#bracket-bronze .match-slot');
     if (finalEl) {
