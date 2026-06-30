@@ -372,10 +372,20 @@ async function atualizarPainel() {
                     const prev = placaresAnteriores[m.fixture.id];
                     if (golsCasa > prev.home) {
                         historicoGols[m.fixture.id] = { time: 'home', timestamp: hoje.getTime() };
-                        somGol.play().catch(() => {});
+                        if (m.teams.home.name === 'Brazil') {
+                            somGolBrasil.currentTime = 0;
+                            somGolBrasil.play().catch(() => {});
+                        } else {
+                            somGol.play().catch(() => {});
+                        }
                     } else if (golsFora > prev.away) {
                         historicoGols[m.fixture.id] = { time: 'away', timestamp: hoje.getTime() };
-                        somGol.play().catch(() => {});
+                        if (m.teams.away.name === 'Brazil') {
+                            somGolBrasil.currentTime = 0;
+                            somGolBrasil.play().catch(() => {});
+                        } else {
+                            somGol.play().catch(() => {});
+                        }
                     }
                 }
                 placaresAnteriores[m.fixture.id] = { home: golsCasa, away: golsFora };
