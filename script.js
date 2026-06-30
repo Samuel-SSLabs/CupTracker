@@ -544,16 +544,34 @@ function renderizarBracket(standingsData) {
     const todasElim = Object.values(cachePartidas)
         .filter(m => !((m.league?.round ?? '').toLowerCase().includes('group')))
         .sort((a, b) => new Date(a.fixture.date) - new Date(b.fixture.date));
+
     const porFase = { r32: [], r16: [], qf: [], sf: [], final: [], third: [] };
+    
     todasElim.forEach(m => {
         const r = (m.league?.round ?? '').toLowerCase();
-        if (r.includes('32') || r.includes('round of 32') || r.includes('16 avos')) porFase.r32.push(m);
-        else if (r.includes('16') || r.includes('round of 16') || r.includes('oitavas')) porFase.r16.push(m);
-        else if (r.includes('quarter') || r.includes('quartas')) porFase.qf.push(m);
-        else if (r.includes('semi') || r.includes('semis')) porFase.sf.push(m);
-        else if (r.includes('3rd') || r.includes('terceiro') || r.includes('third')) porFase.third.push(m);
-        else if (r.includes('final')) porFase.final.push(m);
+
+        if (r.includes('32') || r.includes('1/16') || r.includes('16-avos') || r.includes('16 avos')) {
+            porFase.r32.push(m);
+        } 
+
+        else if (r.includes('16') || r.includes('1/8') || r.includes('oitavas') || r.includes('octavos')) {
+            porFase.r16.push(m);
+        } else if (r.includes('quarter') || r.includes('quartas') || r.includes('1/4')) {
+            porFase.qf.push(m);
+        } else if (r.includes('semi') || r.includes('semis') || r.includes('1/2')) {
+            porFase.sf.push(m);
+        } else if (r.includes('3rd') || r.includes('terceiro') || r.includes('third') || r.includes('bronze')) {
+            porFase.third.push(m);
+        } else if (r.includes('final')) {
+            porFase.final.push(m);
+        }
     });
+
+    const ordenarPorData = (a, b) => new Date(a.fixture.date) - new Date(b.fixture.date);
+    porFase.r32.sort(ordenarPorData);
+    porFase.r16.sort(ordenarPorData);
+    porFase.qf.sort(ordenarPorData);
+    porFase.sf.sort(ordenarPorData);
 
     const mapearFase = (partidas, totalJogos, indicesEsq, indicesDir) => {
         const completas = new Array(totalJogos).fill(null);
@@ -572,14 +590,14 @@ function renderizarBracket(standingsData) {
         [1, 4, 6, 7, 14, 13, 12, 15]
     );
 
-const r16 = mapearFase(porFase.r16, 8,
+    const r16 = mapearFase(porFase.r16, 8,
         [1, 0, 4, 5],
         [2, 3, 6, 7]
     );
 
     const qf = mapearFase(porFase.qf, 4,
-        [0, 2],
-        [1, 3]
+        [0, 1],
+        [2, 3]
     );
 
     const sf = mapearFase(porFase.sf, 2,
@@ -598,7 +616,7 @@ const r16 = mapearFase(porFase.r16, 8,
         coluna(qf.dir)  +
         coluna(r16.dir) +
         coluna(r32.dir);
-
+    
     document.getElementById('bracket-left').innerHTML  = leftHtml;
     document.getElementById('bracket-right').innerHTML = rightHtml;
 
