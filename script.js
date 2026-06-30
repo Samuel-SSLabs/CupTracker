@@ -357,7 +357,7 @@ async function atualizarPainel() {
     const fmtData = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
     const hoje = new Date();
     const dataInicio = new Date(hoje);
-    dataInicio.setDate(hoje.getDate() - 1);
+    dataInicio.setDate(hoje.getDate() - 25);
     const dataFim = new Date(hoje);
     dataFim.setDate(hoje.getDate() + 30); // cobre toda a fase eliminatória
     const urlFinal = `${URL_PROXY}?dateFrom=${fmtData(dataInicio)}&dateTo=${fmtData(dataFim)}`;
