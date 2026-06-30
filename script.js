@@ -657,6 +657,11 @@ window.testeFicticio = (function () {
     const FIXTURE_ID_TESTE = 999999;
     let ativo = false;
 
+    const LOGOS_TESTE = {
+        'Brazil': 'https://media.api-sports.io/football/teams/6.png',
+        'Argentina': 'https://media.api-sports.io/football/teams/26.png'
+    };
+
     function montarPartida(homeName, awayName, golsHome, golsAway) {
         return {
             fixture: {
@@ -665,8 +670,8 @@ window.testeFicticio = (function () {
                 status: { short: '1H', elapsed: 10, extra: null }
             },
             teams: {
-                home: { id: homeName === 'Brazil' ? 6 : 9999, name: homeName, logo: '' },
-                away: { id: awayName === 'Brazil' ? 6 : 8888, name: awayName, logo: '' }
+                home: { id: homeName === 'Brazil' ? 6 : 9999, name: homeName, logo: LOGOS_TESTE[homeName] || '' },
+                away: { id: awayName === 'Brazil' ? 6 : 8888, name: awayName, logo: LOGOS_TESTE[awayName] || '' }
             },
             goals: { home: golsHome, away: golsAway },
             score: { penalty: { home: null, away: null } }
