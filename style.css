@@ -38,7 +38,11 @@ body {
     position: relative;
 }
 .header {
-    background: linear-gradient(135deg, var(--green-1), var(--green-2));
+    background: linear-gradient(110deg, 
+        #009c3b 0%, #009c3b 55%, 
+        #ffdf00 55%, #ffdf00 62%, 
+        #002776 62%, #002776 100%
+    );
     color: #fff;
     height: 42px;
     display: flex;
@@ -48,7 +52,7 @@ body {
     font-size: 18px;
     font-weight: 700;
     letter-spacing: 1.5px;
-    border-bottom: 2px solid rgba(255,196,0,0.6);
+    border-bottom: 2px solid rgba(0, 0, 0, 0.4);
     flex-shrink: 0;
 }
 #btn-teste-audio img { width: 18px; height: 18px; object-fit: contain; filter: invert(1); }
@@ -289,6 +293,7 @@ body {
     font-weight: 700;
     letter-spacing: 1.5px;
     color: #fff;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.6);
 }
 .header-actions {
     display: flex;
