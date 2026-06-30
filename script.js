@@ -255,7 +255,16 @@ function renderizarDetalhes(fixtureId, dados) {
     if (!htmlStats && !htmlEventos) {
         htmlEventos = '<div class="modal-erro" style="padding-top:20px;">Sem dados disponíveis para esta partida.</div>';
     }
-    conteudo.innerHTML = htmlPlacar + htmlStats + htmlEventos;
+    const modoTorneio = document.body.classList.contains('modo-torneio-ativo');
+    if (modoTorneio) {
+        conteudo.innerHTML = htmlPlacar + `
+            <div class="stats-eventos-colunas">
+                <div class="coluna-stats">${htmlStats}</div>
+                <div class="coluna-eventos">${htmlEventos}</div>
+            </div>`;
+    } else {
+        conteudo.innerHTML = htmlPlacar + htmlStats + htmlEventos;
+    }
 }
 function fecharModal() {
     document.getElementById('modal-detalhes').classList.remove('visivel');
@@ -341,6 +350,7 @@ function criarBlocoPartida(match, isLive, quemMarcou) {
         </div>`;
 }
 async function atualizarPainel() {
+    if (window.modoTesteAtivo) return;
     const debugLog = document.getElementById('debug-log');
     const mainQueue = document.getElementById('main-queue');
     const historyContent = document.getElementById('history-content');
@@ -635,8 +645,9 @@ function renderizarGrupos(todasEntradas, top8TerceiroIds) {
             </div>`;
     }).join('');
 }
+
 // ===================== MODO TESTE (uso apenas via console do navegador) =====================
-// Use no console:
+// Não fica visível na interface. Use no console:
 //   testeFicticio.iniciar()                -> cria partida fictícia Brazil x Argentina e pausa a API real
 //   testeFicticio.iniciar('France','Spain') -> cria partida fictícia com outros times
 //   testeFicticio.golHome()                -> simula gol do time da casa
@@ -645,7 +656,7 @@ function renderizarGrupos(todasEntradas, top8TerceiroIds) {
 window.testeFicticio = (function () {
     const FIXTURE_ID_TESTE = 999999;
     let ativo = false;
- 
+
     function montarPartida(homeName, awayName, golsHome, golsAway) {
         return {
             fixture: {
@@ -661,14 +672,14 @@ window.testeFicticio = (function () {
             score: { penalty: { home: null, away: null } }
         };
     }
- 
+
     function renderizar(destaque) {
         const mainQueue = document.getElementById('main-queue');
         const match = cachePartidas[FIXTURE_ID_TESTE];
         if (!mainQueue || !match) return;
         mainQueue.innerHTML = criarBlocoPartida(match, true, destaque);
     }
- 
+
     function iniciar(homeName = 'Brazil', awayName = 'Argentina') {
         if (window.timerAtualizacao) clearTimeout(window.timerAtualizacao);
         ativo = true;
@@ -681,7 +692,7 @@ window.testeFicticio = (function () {
             'color:#3dffa0;font-weight:bold;'
         );
     }
- 
+
     function gol(lado) {
         if (!ativo) {
             console.warn('[MODO TESTE] Não está ativo. Chame testeFicticio.iniciar() primeiro.');
@@ -689,7 +700,7 @@ window.testeFicticio = (function () {
         }
         const match = cachePartidas[FIXTURE_ID_TESTE];
         if (lado === 'home') match.goals.home++; else match.goals.away++;
- 
+
         const nomeQueMarcou = lado === 'home' ? match.teams.home.name : match.teams.away.name;
         if (nomeQueMarcou === 'Brazil') {
             somGolBrasil.currentTime = 0;
@@ -699,16 +710,16 @@ window.testeFicticio = (function () {
             somGol.play().catch(() => {});
             console.log(`%c[MODO TESTE] Gol de ${nomeQueMarcou}. Tocando audio.mp3`, 'color:#fff;');
         }
- 
+
         placaresAnteriores[FIXTURE_ID_TESTE] = { home: match.goals.home, away: match.goals.away };
         historicoGols[FIXTURE_ID_TESTE] = { time: lado, timestamp: Date.now() };
         renderizar(lado);
- 
+
         setTimeout(() => {
             if (cachePartidas[FIXTURE_ID_TESTE]) renderizar(null);
         }, TEMPO_DESTAQUE_MS);
     }
- 
+
     function parar() {
         ativo = false;
         window.modoTesteAtivo = false;
@@ -718,7 +729,7 @@ window.testeFicticio = (function () {
         atualizarPainel();
         console.log('%c[MODO TESTE] Encerrado. Retomando dados reais da API.', 'color:#ffab4d;font-weight:bold;');
     }
- 
+
     return {
         iniciar,
         golHome: () => gol('home'),
@@ -726,4 +737,3 @@ window.testeFicticio = (function () {
         parar
     };
 })();
- 
