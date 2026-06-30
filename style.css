@@ -4,7 +4,7 @@
     --bezel-light: #4b515c;
     --bezel-dark: #161819;
     --green-1: #0e8a4b;
-    --green-2: #06472a;
+    --green-2: #06472a; 
     --amber: #ffab4d;
     --gol-glow: #3dffa0;
     --text-primary: #f4f6f2;
@@ -326,7 +326,7 @@ body {
     width: 30px;
     border-radius: 50%;
     padding: 0;
-    color: var(--amber);
+    color: var(--green-1);
     border-color: rgba(255,171,77,0.35);
 }
 .btn-icon-img {
@@ -621,4 +621,7 @@ body.modo-torneio-ativo .tft-screen {
     font-weight: 700;
     font-size: 12px;
     padding-right: 2px;
+}
+#btn-teste-brasil .btn-icon-img {
+    filter: none;
 }
