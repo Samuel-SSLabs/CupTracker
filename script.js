@@ -572,9 +572,9 @@ function renderizarBracket(standingsData) {
         [1, 4, 6, 7, 14, 13, 12, 15]
     );
 
-    const r16 = mapearFase(porFase.r16, 8,
-        [0, 2, 4, 6],
-        [1, 3, 5, 7]
+const r16 = mapearFase(porFase.r16, 8,
+        [1, 0, 4, 5],
+        [2, 3, 6, 7]
     );
 
     const qf = mapearFase(porFase.qf, 4,
