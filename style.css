@@ -306,8 +306,8 @@ body {
     z-index: 2;
 }
 .icon-btn {
-    background: rgba(255,255,255,0.08);
-    border: 1px solid rgba(255,255,255,0.15);
+    background: rgba(0, 156, 59, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.15);
     color: #fff;
     border-radius: 50%;
     width: 30px;
@@ -336,8 +336,12 @@ body {
     filter: invert(1);
     flex-shrink: 0;
 }
+.icon-btn.highlight-btn {
+    border-color: rgba(255, 255, 255, 0.2);
+    color: #fff;
+}
 .highlight-btn .btn-icon-img {
-    filter: brightness(0) saturate(100%) invert(78%) sepia(55%) saturate(600%) hue-rotate(340deg) brightness(105%);
+    filter: none;
 }
 .btn-torneio-label {
     font-size: 11px;
@@ -623,5 +627,7 @@ body.modo-torneio-ativo .tft-screen {
     padding-right: 2px;
 }
 #btn-teste-brasil .btn-icon-img {
+    width: 22px;
+    height: 22px;
     filter: none;
 }
