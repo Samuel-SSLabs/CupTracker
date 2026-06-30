@@ -635,3 +635,95 @@ function renderizarGrupos(todasEntradas, top8TerceiroIds) {
             </div>`;
     }).join('');
 }
+// ===================== MODO TESTE (uso apenas via console do navegador) =====================
+// Use no console:
+//   testeFicticio.iniciar()                -> cria partida fictícia Brazil x Argentina e pausa a API real
+//   testeFicticio.iniciar('France','Spain') -> cria partida fictícia com outros times
+//   testeFicticio.golHome()                -> simula gol do time da casa
+//   testeFicticio.golAway()                -> simula gol do time visitante
+//   testeFicticio.parar()                  -> remove a partida fictícia e volta a buscar dados reais
+window.testeFicticio = (function () {
+    const FIXTURE_ID_TESTE = 999999;
+    let ativo = false;
+ 
+    function montarPartida(homeName, awayName, golsHome, golsAway) {
+        return {
+            fixture: {
+                id: FIXTURE_ID_TESTE,
+                date: new Date(),
+                status: { short: '1H', elapsed: 10, extra: null }
+            },
+            teams: {
+                home: { id: homeName === 'Brazil' ? 6 : 9999, name: homeName, logo: '' },
+                away: { id: awayName === 'Brazil' ? 6 : 8888, name: awayName, logo: '' }
+            },
+            goals: { home: golsHome, away: golsAway },
+            score: { penalty: { home: null, away: null } }
+        };
+    }
+ 
+    function renderizar(destaque) {
+        const mainQueue = document.getElementById('main-queue');
+        const match = cachePartidas[FIXTURE_ID_TESTE];
+        if (!mainQueue || !match) return;
+        mainQueue.innerHTML = criarBlocoPartida(match, true, destaque);
+    }
+ 
+    function iniciar(homeName = 'Brazil', awayName = 'Argentina') {
+        if (window.timerAtualizacao) clearTimeout(window.timerAtualizacao);
+        ativo = true;
+        window.modoTesteAtivo = true;
+        cachePartidas[FIXTURE_ID_TESTE] = montarPartida(homeName, awayName, 0, 0);
+        placaresAnteriores[FIXTURE_ID_TESTE] = { home: 0, away: 0 };
+        renderizar(null);
+        console.log(
+            `%c[MODO TESTE] Partida fictícia criada: ${homeName} x ${awayName}. API real pausada.\nUse testeFicticio.golHome() ou testeFicticio.golAway() para simular gols.\nUse testeFicticio.parar() para encerrar.`,
+            'color:#3dffa0;font-weight:bold;'
+        );
+    }
+ 
+    function gol(lado) {
+        if (!ativo) {
+            console.warn('[MODO TESTE] Não está ativo. Chame testeFicticio.iniciar() primeiro.');
+            return;
+        }
+        const match = cachePartidas[FIXTURE_ID_TESTE];
+        if (lado === 'home') match.goals.home++; else match.goals.away++;
+ 
+        const nomeQueMarcou = lado === 'home' ? match.teams.home.name : match.teams.away.name;
+        if (nomeQueMarcou === 'Brazil') {
+            somGolBrasil.currentTime = 0;
+            somGolBrasil.play().catch(() => {});
+            console.log('%c[MODO TESTE] GOL DO BRASIL! Tocando brasil_gol.mp3', 'color:#FFD700;font-weight:bold;');
+        } else {
+            somGol.play().catch(() => {});
+            console.log(`%c[MODO TESTE] Gol de ${nomeQueMarcou}. Tocando audio.mp3`, 'color:#fff;');
+        }
+ 
+        placaresAnteriores[FIXTURE_ID_TESTE] = { home: match.goals.home, away: match.goals.away };
+        historicoGols[FIXTURE_ID_TESTE] = { time: lado, timestamp: Date.now() };
+        renderizar(lado);
+ 
+        setTimeout(() => {
+            if (cachePartidas[FIXTURE_ID_TESTE]) renderizar(null);
+        }, TEMPO_DESTAQUE_MS);
+    }
+ 
+    function parar() {
+        ativo = false;
+        window.modoTesteAtivo = false;
+        delete cachePartidas[FIXTURE_ID_TESTE];
+        delete placaresAnteriores[FIXTURE_ID_TESTE];
+        delete historicoGols[FIXTURE_ID_TESTE];
+        atualizarPainel();
+        console.log('%c[MODO TESTE] Encerrado. Retomando dados reais da API.', 'color:#ffab4d;font-weight:bold;');
+    }
+ 
+    return {
+        iniciar,
+        golHome: () => gol('home'),
+        golAway: () => gol('away'),
+        parar
+    };
+})();
+ 
