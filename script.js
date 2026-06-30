@@ -548,21 +548,40 @@ function renderizarBracket(standingsData) {
         };
     };
 
-    const r32 = separarLados(porFase.r32, 8, 8);
-    const r16 = separarLados(porFase.r16, 4, 4);
-    const qf  = separarLados(porFase.qf,  2, 2);
-    const sf  = separarLados(porFase.sf,  1, 1);
+// Nova função de mapeamento manual e preciso
+    const mapearFase = (partidas, totalJogos, indicesEsq, indicesDir) => {
+        // Garante que o array tenha o tamanho correto, mesmo se a API falhar em mandar algo
+        const completas = new Array(totalJogos).fill(null);
+        partidas.forEach((m, i) => { 
+            if (i < totalJogos) completas[i] = m; 
+        });
 
-    const leftHtml =
-        coluna(r32.esq) +
-        coluna(r16.esq) +
-        coluna(qf.esq)  +
-        coluna(sf.esq);
-    const rightHtml =
-        coluna(sf.dir)  +
-        coluna(qf.dir)  +
-        coluna(r16.dir) +
-        coluna(r32.dir);
+        // Distribui os jogos para os lados com base nos arrays de configuração
+        return {
+            esq: indicesEsq.map(i => completas[i] ? slotReal(completas[i]) : slotTbd()),
+            dir: indicesDir.map(i => completas[i] ? slotReal(completas[i]) : slotTbd())
+        };
+    };
+
+    const r32 = mapearFase(porFase.r32, 16,
+        [0, 1, 4, 5, 8, 9, 12, 13],  // Lado Esquerdo
+        [2, 3, 6, 7, 10, 11, 14, 15] // Lado Direito
+    );
+
+    const r16 = mapearFase(porFase.r16, 8,
+        [0, 1, 4, 5], // Lado Esquerdo
+        [2, 3, 6, 7]  // Lado Direito
+    );
+
+    const qf = mapearFase(porFase.qf, 4,
+        [0, 1], // Lado Esquerdo
+        [2, 3]  // Lado Direito
+    );
+
+    const sf = mapearFase(porFase.sf, 2,
+        [0], // Lado Esquerdo
+        [1]  // Lado Direito
+    );
 
     document.getElementById('bracket-left').innerHTML  = leftHtml;
     document.getElementById('bracket-right').innerHTML = rightHtml;
