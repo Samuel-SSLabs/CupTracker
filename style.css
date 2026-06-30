@@ -40,8 +40,8 @@ body {
 .header {
     background: linear-gradient(110deg, 
         #ffdf00 0%, 
-        #ffdf00 40%, 
-        #009c3b 85%, 
+        #ffdf00 25%, 
+        #009c3b 70%, 
         #009c3b 100%
     );
     color: #fff;
