@@ -40,10 +40,9 @@ body {
 .header {
     background: linear-gradient(110deg, 
         #009c3b 0%, 
-        #009c3b 35%, 
-        #ffdf00 55%, 
-        #002776 75%, 
-        #002776 100%
+        #009c3b 40%, 
+        #ffdf00 85%, 
+        #ffdf00 100%
     );
     color: #fff;
     height: 42px;
@@ -54,6 +53,7 @@ body {
     font-size: 18px;
     font-weight: 700;
     letter-spacing: 1.5px;
+    
     border-bottom: none; 
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
     flex-shrink: 0;
