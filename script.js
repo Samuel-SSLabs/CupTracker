@@ -1,4 +1,5 @@
 const URL_PROXY = 'https://cuptracker.sstudioslabs.workers.dev/v4/matches';
+const STATUS_LIVE = ['1H', '2H', 'ET', 'P'];
 const STATUS_LIVE_COM_HT = ['1H', '2H', 'ET', 'P', 'HT'];
 const STATUS_FIM = ['FT', 'AET', 'PEN'];
 const STATUS_COM_DETALHES = [...STATUS_LIVE_COM_HT, ...STATUS_FIM];
@@ -343,7 +344,8 @@ async function atualizarPainel() {
     const dataInicio = new Date(hoje);
     dataInicio.setDate(hoje.getDate() - 1);
     const dataFim = new Date(hoje);
-    dataFim.setDate(hoje.getDate() + 30);     const urlFinal = `${URL_PROXY}?dateFrom=${fmtData(dataInicio)}&dateTo=${fmtData(dataFim)}`;
+    dataFim.setDate(hoje.getDate() + 30); // cobre toda a fase eliminatória
+    const urlFinal = `${URL_PROXY}?dateFrom=${fmtData(dataInicio)}&dateTo=${fmtData(dataFim)}`;
     try {
         const response = await fetch(urlFinal);
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -527,44 +529,54 @@ function renderizarBracket(standingsData) {
         else if (r.includes('3rd') || r.includes('terceiro') || r.includes('third')) porFase.third.push(m);
         else if (r.includes('final')) porFase.final.push(m);
     });
+
     const mapearFase = (partidas, totalJogos, indicesEsq, indicesDir) => {
         const completas = new Array(totalJogos).fill(null);
         partidas.forEach((m, i) => { 
             if (i < totalJogos) completas[i] = m; 
         });
+
         return {
             esq: indicesEsq.map(i => completas[i] ? slotReal(completas[i]) : slotTbd()),
             dir: indicesDir.map(i => completas[i] ? slotReal(completas[i]) : slotTbd())
         };
     };
+
     const r32 = mapearFase(porFase.r32, 16,
         [2, 5, 0, 3, 11, 10, 9, 8],
         [1, 4, 6, 7, 14, 13, 12, 15]
     );
+
     const r16 = mapearFase(porFase.r16, 8,
         [0, 2, 4, 6],
         [1, 3, 5, 7]
     );
+
     const qf = mapearFase(porFase.qf, 4,
         [0, 2],
         [1, 3]
     );
+
     const sf = mapearFase(porFase.sf, 2,
         [0],
         [1]
     );
+
     const leftHtml =
         coluna(r32.esq) +
         coluna(r16.esq) +
         coluna(qf.esq)  +
         coluna(sf.esq);
+
     const rightHtml =
         coluna(sf.dir)  +
         coluna(qf.dir)  +
         coluna(r16.dir) +
         coluna(r32.dir);
+
     document.getElementById('bracket-left').innerHTML  = leftHtml;
     document.getElementById('bracket-right').innerHTML = rightHtml;
+
         const finalEl = document.querySelector('#bracket-final .match-slot');
     const thirdEl = document.querySelector('#bracket-bronze .match-slot');
     if (finalEl) {
