@@ -39,8 +39,8 @@ body {
 }
 .header {
     background: linear-gradient(110deg, 
-        #002776 0%, 
-        #002776 25%, 
+        #ffdf00 0%, 
+        #ffdf00 25%, 
         #009c3b 70%, 
         #009c3b 100%
     );
@@ -632,4 +632,26 @@ body.modo-torneio-ativo .tft-screen {
     width: 22px;
     height: 22px;
     filter: none;
+}
+
+/* Layout em duas colunas (Estatísticas | Gols & Cartões) no modal de detalhes, exclusivo do modo torneio */
+.stats-eventos-colunas {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    margin-top: 4px;
+}
+.coluna-stats {
+    flex: 1;
+    min-width: 0;
+    padding-right: 16px;
+    border-right: 1px solid var(--card-border);
+}
+.coluna-eventos {
+    flex: 1;
+    min-width: 0;
+}
+.coluna-stats .secao-titulo,
+.coluna-eventos .secao-titulo {
+    margin-top: 0;
 }
