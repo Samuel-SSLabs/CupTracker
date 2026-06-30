@@ -548,15 +548,11 @@ function renderizarBracket(standingsData) {
         };
     };
 
-// Nova função de mapeamento manual e preciso
     const mapearFase = (partidas, totalJogos, indicesEsq, indicesDir) => {
-        // Garante que o array tenha o tamanho correto, mesmo se a API falhar em mandar algo
         const completas = new Array(totalJogos).fill(null);
         partidas.forEach((m, i) => { 
             if (i < totalJogos) completas[i] = m; 
         });
-
-        // Distribui os jogos para os lados com base nos arrays de configuração
         return {
             esq: indicesEsq.map(i => completas[i] ? slotReal(completas[i]) : slotTbd()),
             dir: indicesDir.map(i => completas[i] ? slotReal(completas[i]) : slotTbd())
@@ -564,23 +560,23 @@ function renderizarBracket(standingsData) {
     };
 
     const r32 = mapearFase(porFase.r32, 16,
-        [0, 1, 4, 5, 8, 9, 12, 13],  // Lado Esquerdo
-        [2, 3, 6, 7, 10, 11, 14, 15] // Lado Direito
+        [0, 2, 4, 6, 8, 10, 12, 14],
+        [1, 3, 5, 7, 9, 11, 13, 15]
     );
 
     const r16 = mapearFase(porFase.r16, 8,
-        [0, 1, 4, 5], // Lado Esquerdo
-        [2, 3, 6, 7]  // Lado Direito
+        [0, 2, 4, 6],
+        [1, 3, 5, 7]
     );
 
     const qf = mapearFase(porFase.qf, 4,
-        [0, 1], // Lado Esquerdo
-        [2, 3]  // Lado Direito
+        [0, 2],
+        [1, 3]
     );
 
     const sf = mapearFase(porFase.sf, 2,
-        [0], // Lado Esquerdo
-        [1]  // Lado Direito
+        [0],
+        [1]
     );
 
     document.getElementById('bracket-left').innerHTML  = leftHtml;
