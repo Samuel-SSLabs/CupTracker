@@ -50,6 +50,10 @@ document.getElementById('btn-teste-audio').addEventListener('click', () => {
     somGol.currentTime = 0;
     somGol.play().catch(() => {});
 });
+document.getElementById('btn-teste-brasil').addEventListener('click', () => {
+    somGolBrasil.currentTime = 0;
+    somGolBrasil.play().catch(() => {});
+});
 function sigla(nome) {
     return SIGLAS_FIFA[nome] || nome.substring(0, 3).toUpperCase();
 }
