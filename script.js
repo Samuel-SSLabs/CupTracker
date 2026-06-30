@@ -520,6 +520,7 @@ function renderizarBracket(standingsData) {
         .filter(m => !((m.league?.round ?? '').toLowerCase().includes('group')))
         .sort((a, b) => new Date(a.fixture.date) - new Date(b.fixture.date));
     const porFase = { r32: [], r16: [], qf: [], sf: [], final: [], third: [] };
+// 1. Organiza os jogos por fase
     todasElim.forEach(m => {
         const r = (m.league?.round ?? '').toLowerCase();
         if (r.includes('32') || r.includes('round of 32') || r.includes('16 avos')) porFase.r32.push(m);
@@ -529,58 +530,59 @@ function renderizarBracket(standingsData) {
         else if (r.includes('3rd') || r.includes('terceiro') || r.includes('third')) porFase.third.push(m);
         else if (r.includes('final')) porFase.final.push(m);
     });
-    // organizarFase removida — lados separados por índice par/ímpar
-        // A API entrega partidas em ordem cronológica.
-    // Convenção visual: jogo 1 (índice par) → lado esquerdo, jogo 2 (índice ímpar) → lado direito.
-    // Dentro de cada lado, ordem de cima para baixo = ordem cronológica dos jogos daquele lado.
 
-    const separarLados = (partidas, totalEsq, totalDir) => {
-        const esq = [], dir = [];
-        partidas.forEach((m, i) => {
-            if (i % 2 === 0) esq.push(m); else dir.push(m);
-        });
-        // Preenche com TBD se faltar
-        while (esq.length < totalEsq) esq.push(null);
-        while (dir.length < totalDir) dir.push(null);
-        return {
-            esq: esq.slice(0, totalEsq).map(m => m ? slotReal(m) : slotTbd()),
-            dir: dir.slice(0, totalDir).map(m => m ? slotReal(m) : slotTbd()),
-        };
-    };
-
+    // 2. Nova função de mapeamento manual e preciso
     const mapearFase = (partidas, totalJogos, indicesEsq, indicesDir) => {
         const completas = new Array(totalJogos).fill(null);
         partidas.forEach((m, i) => { 
             if (i < totalJogos) completas[i] = m; 
         });
+
         return {
             esq: indicesEsq.map(i => completas[i] ? slotReal(completas[i]) : slotTbd()),
             dir: indicesDir.map(i => completas[i] ? slotReal(completas[i]) : slotTbd())
         };
     };
 
+    // 3. CHAVEAMENTO OFICIAL DA COPA DO MUNDO 2026 (FIFA)
     const r32 = mapearFase(porFase.r32, 16,
-        [0, 2, 4, 6, 8, 10, 12, 14],
-        [1, 3, 5, 7, 9, 11, 13, 15]
+        [0, 2, 4, 6, 8, 10, 12, 14], // Lado Esquerdo
+        [1, 3, 5, 7, 9, 11, 13, 15]  // Lado Direito
     );
 
     const r16 = mapearFase(porFase.r16, 8,
-        [0, 2, 4, 6],
-        [1, 3, 5, 7]
+        [0, 2, 4, 6], // Lado Esquerdo
+        [1, 3, 5, 7]  // Lado Direito
     );
 
     const qf = mapearFase(porFase.qf, 4,
-        [0, 2],
-        [1, 3]
+        [0, 2], // Lado Esquerdo
+        [1, 3]  // Lado Direito
     );
 
     const sf = mapearFase(porFase.sf, 2,
-        [0],
-        [1]
+        [0], // Lado Esquerdo
+        [1]  // Lado Direito
     );
 
+    // 4. Constrói o HTML das colunas separadas
+    const leftHtml =
+        coluna(r32.esq) +
+        coluna(r16.esq) +
+        coluna(qf.esq)  +
+        coluna(sf.esq);
+
+    const rightHtml =
+        coluna(sf.dir)  +
+        coluna(qf.dir)  +
+        coluna(r16.dir) +
+        coluna(r32.dir);
+
+    // 5. Aplica na tela
     document.getElementById('bracket-left').innerHTML  = leftHtml;
     document.getElementById('bracket-right').innerHTML = rightHtml;
+
+    // 6. Final e 3º Lugar
         const finalEl = document.querySelector('#bracket-final .match-slot');
     const thirdEl = document.querySelector('#bracket-bronze .match-slot');
     if (finalEl) {
