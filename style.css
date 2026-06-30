@@ -39,10 +39,10 @@ body {
 }
 .header {
     background: linear-gradient(110deg, 
-        #009c3b 0%, 
-        #009c3b 40%, 
-        #ffdf00 85%, 
-        #ffdf00 100%
+        #ffdf00 0%, 
+        #ffdf00 40%, 
+        #009c3b 85%, 
+        #009c3b 100%
     );
     color: #fff;
     height: 42px;
