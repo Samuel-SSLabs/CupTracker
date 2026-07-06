@@ -471,6 +471,7 @@ async function buscarEConstruirTorneio() {
         renderizarGrupos(todasEntradas, top8TerceiroIds);
         renderizarBracket(todasEntradas);
         torneioCarregado = true;
+        if (!statsCarregadas) buscarStats();
     } catch (e) {
         console.error('Falha ao carregar torneio:', e);
         document.getElementById('grupos-rodape').innerHTML =
@@ -511,8 +512,7 @@ function renderizarBracket(standingsData) {
             ? `<span class="slot-sig tbd">TBD</span>`
             : `<img src="${m.teams.away.logo}" class="slot-logo"><span class="slot-sig">${sigla(m.teams.away.name)}</span>${temGol ? `<span class="slot-score${wA ? ' slot-score-win' : ''}">${golA}</span>` : ''}`;
         const dataTexto = (m.fixture.status.short === 'TBD' || (isTbdA && isTbdB)) ? 'A definir' : `${dia}/${mes} ${hora}`;
-        const podeClicarSlot = temDetalhes(m.fixture.status.short);
-        return `<div class="match-slot${podeClicarSlot ? ' slot-clicavel' : ''}"${podeClicarSlot ? ` onclick="abrirMenuDetalhes(${m.fixture.id})"` : ''}>
+        return `<div class="match-slot">
             <div class="slot-team-row${wH && !isTbdA ? ' slot-winner' : ''}">${rowA}</div>
             <div class="slot-team-row${wA && !isTbdB ? ' slot-winner' : ''}">${rowB}</div>
             <span class="slot-data">${dataTexto}</span>
@@ -695,3 +695,48 @@ window.testeFicticio = (function () {
         parar
     };
 })();
+
+// ── Artilheiros e Assistências ─────────────────────────────
+let statsCarregadas = false;
+
+async function buscarStats() {
+    await Promise.all([
+        buscarListaStats('topscorers', 'lista-artilheiros', 'goals'),
+        buscarListaStats('topassists',  'lista-assistencias', 'assists')
+    ]);
+    statsCarregadas = true;
+}
+
+async function buscarListaStats(action, elementId, campo) {
+    const el = document.getElementById(elementId);
+    try {
+        const res = await fetch(`${URL_PROXY}?action=${action}`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        if (data.erro) throw new Error(data.erro);
+        const lista = data.response;
+        if (!Array.isArray(lista) || lista.length === 0) throw new Error('Sem dados');
+        el.innerHTML = lista.slice(0, 10).map((item, idx) => {
+            const p       = item.player;
+            const stat    = item.statistics?.[0];
+            const valor   = campo === 'goals'
+                ? (stat?.goals?.total ?? 0)
+                : (stat?.goals?.assists ?? 0);
+            const logoTime = stat?.team?.logo ?? '';
+            const nomeTime = stat?.team?.name ?? '';
+            const rankClass = idx === 0 ? 'ouro' : idx === 1 ? 'prata' : idx === 2 ? 'bronze' : '';
+            const primeiroNome = p.name?.split(' ').pop() ?? p.name;
+            return `<div class="stats-jogador-row">
+                <span class="stats-jogador-rank ${rankClass}">${idx + 1}</span>
+                <img src="${logoTime}" class="stats-jogador-logo" alt="${nomeTime}" title="${nomeTime}">
+                <div class="stats-jogador-info">
+                    <div class="stats-jogador-nome" title="${p.name}">${primeiroNome}</div>
+                    <div class="stats-jogador-pais">${sigla(nomeTime)}</div>
+                </div>
+                <span class="stats-jogador-num">${valor}</span>
+            </div>`;
+        }).join('');
+    } catch (e) {
+        el.innerHTML = `<div class="stats-col-erro">Indisponível no momento</div>`;
+    }
+}
