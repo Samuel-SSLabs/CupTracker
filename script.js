@@ -457,16 +457,15 @@ document.getElementById('btn-toggle-torneio').addEventListener('click', async fu
         }
     }
 });
-// ── Painel Artilheiros / Assistências ─────────────────────
 let statsCarregadas = false;
 
 document.getElementById('btn-stats').addEventListener('click', function () {
-    document.getElementById('stats-overlay').classList.add('visivel');
-    if (!statsCarregadas) buscarStats();
-});
+    const overlay = document.getElementById('stats-overlay');
+    const overlayAbriu = overlay.classList.toggle('visivel');
 
-document.getElementById('btn-fechar-stats').addEventListener('click', function () {
-    document.getElementById('stats-overlay').classList.remove('visivel');
+    if (overlayAbriu && !statsCarregadas) {
+        buscarStats();
+    }
 });
 
 async function buscarStats() {
