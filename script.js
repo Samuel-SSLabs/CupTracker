@@ -377,7 +377,7 @@ async function atualizarPainel() {
                     const prev = placaresAnteriores[m.fixture.id];
                     if (golsCasa > prev.home) {
                         historicoGols[m.fixture.id] = { time: 'home', timestamp: hoje.getTime() };
-                        else {
+                        try {
                             somGol.play().catch(() => {});
                         }
                     } else if (golsFora > prev.away) {
@@ -714,7 +714,7 @@ window.testeFicticio = (function () {
         if (lado === 'home') match.goals.home++; else match.goals.away++;
 
         const nomeQueMarcou = lado === 'home' ? match.teams.home.name : match.teams.away.name;
-        else {
+        try {
             somGol.play().catch(() => {});
             console.log(`%c[MODO TESTE] Gol de ${nomeQueMarcou}. Tocando audio.mp3`, 'color:#fff;');
         }
