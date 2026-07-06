@@ -643,14 +643,8 @@ body.modo-torneio-ativo .tft-screen {
     margin-top: 0;
 }
 
-/* ── Botão stats (visível só no modo torneio) ── */
-.btn-stats-hidden { display: none !important; }
-body.modo-torneio-ativo .btn-stats-hidden { display: flex !important; }
-
-/* ── painel-jogos precisa de position relative para conter o overlay ── */
 .painel-jogos { position: relative; }
 
-/* ── Overlay sobe de baixo cobrindo toda a coluna de partidas ── */
 .stats-overlay {
     position: absolute;
     inset: 0;
@@ -781,7 +775,6 @@ body.modo-torneio-ativo .btn-stats-hidden { display: flex !important; }
     padding: 10px 0;
 }
 
-/* Slots clicáveis no bracket */
 .match-slot.slot-clicavel {
     cursor: pointer;
     transition: border-color 0.2s, background 0.2s;
@@ -792,7 +785,6 @@ body.modo-torneio-ativo .btn-stats-hidden { display: flex !important; }
 }
 .match-slot.slot-clicavel:active { background: #21242b; }
 
-/* Duas colunas no modal de detalhes (modo torneio) */
 .stats-eventos-colunas {
     display: flex;
     align-items: flex-start;
