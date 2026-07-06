@@ -457,6 +457,61 @@ document.getElementById('btn-toggle-torneio').addEventListener('click', async fu
         }
     }
 });
+// ── Painel Artilheiros / Assistências ─────────────────────
+let statsCarregadas = false;
+
+document.getElementById('btn-stats').addEventListener('click', function () {
+    const overlay = document.getElementById('stats-overlay');
+    overlay.classList.add('visivel');
+    if (!statsCarregadas) buscarStats();
+});
+
+document.getElementById('btn-fechar-stats').addEventListener('click', function () {
+    document.getElementById('stats-overlay').classList.remove('visivel');
+});
+
+async function buscarStats() {
+    await Promise.all([
+        buscarListaStats('topscorers', 'lista-artilheiros', 'goals'),
+        buscarListaStats('topassists',  'lista-assistencias', 'assists')
+    ]);
+    statsCarregadas = true;
+}
+
+async function buscarListaStats(action, elementId, campo) {
+    const el = document.getElementById(elementId);
+    try {
+        const res = await fetch(`${URL_PROXY}?action=${action}`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        if (data.erro) throw new Error(data.erro);
+        const lista = data.response;
+        if (!Array.isArray(lista) || lista.length === 0) throw new Error('Sem dados');
+        el.innerHTML = lista.slice(0, 10).map((item, idx) => {
+            const p        = item.player;
+            const stat     = item.statistics?.[0];
+            const valor    = campo === 'goals'
+                ? (stat?.goals?.total ?? 0)
+                : (stat?.goals?.assists ?? 0);
+            const logoTime = stat?.team?.logo ?? '';
+            const nomeTime = stat?.team?.name ?? '';
+            const rankClass = idx === 0 ? 'ouro' : idx === 1 ? 'prata' : idx === 2 ? 'bronze' : '';
+            const sobrenome = p.name?.split(' ').pop() ?? p.name;
+            return `<div class="stats-jogador-row">
+                <span class="stats-jogador-rank ${rankClass}">${idx + 1}</span>
+                <img src="${logoTime}" class="stats-time-logo" alt="${nomeTime}" title="${nomeTime}">
+                <div class="stats-jogador-info">
+                    <div class="stats-jogador-nome" title="${p.name}">${sobrenome}</div>
+                    <div class="stats-jogador-pais">${sigla(nomeTime)}</div>
+                </div>
+                <span class="stats-jogador-num">${valor}</span>
+            </div>`;
+        }).join('');
+    } catch (e) {
+        el.innerHTML = `<div class="stats-erro">Indisponível no momento</div>`;
+    }
+}
+
 async function buscarEConstruirTorneio() {
     try {
         const res = await fetch(`${URL_PROXY}?action=standings`);
@@ -471,7 +526,6 @@ async function buscarEConstruirTorneio() {
         renderizarGrupos(todasEntradas, top8TerceiroIds);
         renderizarBracket(todasEntradas);
         torneioCarregado = true;
-        if (!statsCarregadas) buscarStats();
     } catch (e) {
         console.error('Falha ao carregar torneio:', e);
         document.getElementById('grupos-rodape').innerHTML =
@@ -695,48 +749,3 @@ window.testeFicticio = (function () {
         parar
     };
 })();
-
-// ── Artilheiros e Assistências ─────────────────────────────
-let statsCarregadas = false;
-
-async function buscarStats() {
-    await Promise.all([
-        buscarListaStats('topscorers', 'lista-artilheiros', 'goals'),
-        buscarListaStats('topassists',  'lista-assistencias', 'assists')
-    ]);
-    statsCarregadas = true;
-}
-
-async function buscarListaStats(action, elementId, campo) {
-    const el = document.getElementById(elementId);
-    try {
-        const res = await fetch(`${URL_PROXY}?action=${action}`);
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json();
-        if (data.erro) throw new Error(data.erro);
-        const lista = data.response;
-        if (!Array.isArray(lista) || lista.length === 0) throw new Error('Sem dados');
-        el.innerHTML = lista.slice(0, 10).map((item, idx) => {
-            const p       = item.player;
-            const stat    = item.statistics?.[0];
-            const valor   = campo === 'goals'
-                ? (stat?.goals?.total ?? 0)
-                : (stat?.goals?.assists ?? 0);
-            const logoTime = stat?.team?.logo ?? '';
-            const nomeTime = stat?.team?.name ?? '';
-            const rankClass = idx === 0 ? 'ouro' : idx === 1 ? 'prata' : idx === 2 ? 'bronze' : '';
-            const primeiroNome = p.name?.split(' ').pop() ?? p.name;
-            return `<div class="stats-jogador-row">
-                <span class="stats-jogador-rank ${rankClass}">${idx + 1}</span>
-                <img src="${logoTime}" class="stats-jogador-logo" alt="${nomeTime}" title="${nomeTime}">
-                <div class="stats-jogador-info">
-                    <div class="stats-jogador-nome" title="${p.name}">${primeiroNome}</div>
-                    <div class="stats-jogador-pais">${sigla(nomeTime)}</div>
-                </div>
-                <span class="stats-jogador-num">${valor}</span>
-            </div>`;
-        }).join('');
-    } catch (e) {
-        el.innerHTML = `<div class="stats-col-erro">Indisponível no momento</div>`;
-    }
-}
