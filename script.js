@@ -12,7 +12,6 @@ let fixtureAtualNoModal = null;
 let primeiraCargaMain = true;
 let cacheDetalhesMemoria = {};
 const somGol = new Audio('assets/audio.mp3');
-const somGolBrasil = new Audio('assets/brasil_gol.mp3');
 const SIGLAS_FIFA = {
     "Canada": "CAN", "United States": "USA", "Mexico": "MEX",
     "Curacao": "CUW", "Haiti": "HAI", "Panama": "PAN",
@@ -49,10 +48,6 @@ function corSelecao(homeId, awayId) {
 document.getElementById('btn-teste-audio').addEventListener('click', () => {
     somGol.currentTime = 0;
     somGol.play().catch(() => {});
-});
-document.getElementById('btn-teste-brasil').addEventListener('click', () => {
-    somGolBrasil.currentTime = 0;
-    somGolBrasil.play().catch(() => {});
 });
 function sigla(nome) {
     return SIGLAS_FIFA[nome] || nome.substring(0, 3).toUpperCase();
@@ -382,18 +377,12 @@ async function atualizarPainel() {
                     const prev = placaresAnteriores[m.fixture.id];
                     if (golsCasa > prev.home) {
                         historicoGols[m.fixture.id] = { time: 'home', timestamp: hoje.getTime() };
-                        if (m.teams.home.name === 'Brazil') {
-                            somGolBrasil.currentTime = 0;
-                            somGolBrasil.play().catch(() => {});
-                        } else {
+                        else {
                             somGol.play().catch(() => {});
                         }
                     } else if (golsFora > prev.away) {
                         historicoGols[m.fixture.id] = { time: 'away', timestamp: hoje.getTime() };
-                        if (m.teams.away.name === 'Brazil') {
-                            somGolBrasil.currentTime = 0;
-                            somGolBrasil.play().catch(() => {});
-                        } else {
+                        else {
                             somGol.play().catch(() => {});
                         }
                     }
@@ -725,11 +714,7 @@ window.testeFicticio = (function () {
         if (lado === 'home') match.goals.home++; else match.goals.away++;
 
         const nomeQueMarcou = lado === 'home' ? match.teams.home.name : match.teams.away.name;
-        if (nomeQueMarcou === 'Brazil') {
-            somGolBrasil.currentTime = 0;
-            somGolBrasil.play().catch(() => {});
-            console.log('%c[MODO TESTE] GOL DO BRASIL! Tocando brasil_gol.mp3', 'color:#FFD700;font-weight:bold;');
-        } else {
+        else {
             somGol.play().catch(() => {});
             console.log(`%c[MODO TESTE] Gol de ${nomeQueMarcou}. Tocando audio.mp3`, 'color:#fff;');
         }
