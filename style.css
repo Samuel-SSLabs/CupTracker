@@ -642,3 +642,16 @@ body.modo-torneio-ativo .tft-screen {
 .coluna-eventos .secao-titulo {
     margin-top: 0;
 }
+
+/* Slots clicáveis no bracket (mata-mata com detalhes disponíveis) */
+.match-slot.slot-clicavel {
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+}
+.match-slot.slot-clicavel:hover {
+    border-color: rgba(255, 171, 77, 0.55);
+    background: #1a1c22;
+}
+.match-slot.slot-clicavel:active {
+    background: #21242b;
+}
