@@ -643,89 +643,111 @@ body.modo-torneio-ativo .tft-screen {
     margin-top: 0;
 }
 
-/* ── Coluna de artilheiros/assistências no modo torneio ── */
-.painel-torneio {
-    flex-direction: row;
-    align-items: stretch;
-}
-.torneio-esq {
-    flex: 1;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    overflow: hidden;
-}
-.torneio-dir {
-    width: 0;
-    flex-shrink: 0;
-    overflow: hidden;
-    opacity: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    transition: width 0.45s cubic-bezier(0.25, 1, 0.5, 1),
-                opacity 0.3s ease 0.15s;
-}
-#app-layout.modo-torneio .torneio-dir {
-    width: 132px;
-    opacity: 1;
-    overflow-y: auto;
-    border-left: 1px solid var(--card-border);
-    padding-left: 8px;
-}
-#app-layout.modo-torneio .torneio-dir::-webkit-scrollbar { width: 0; }
+/* ── Botão stats (visível só no modo torneio) ── */
+.btn-stats-hidden { display: none; }
+body.modo-torneio-ativo .btn-stats-hidden { display: flex; }
 
-.stats-col-bloco {
+/* ── Overlay de artilheiros/assistências ── */
+.stats-overlay {
+    position: absolute;
+    inset: 0;
+    background: var(--screen-bg);
+    display: flex;
+    flex-direction: column;
+    z-index: 20;
+    transform: translateY(100%);
+    transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 0;
+}
+.stats-overlay.visivel { transform: translateY(0); }
+
+.stats-overlay-header {
+    background: linear-gradient(135deg, var(--green-1), var(--green-2));
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 10px;
+    border-bottom: 2px solid rgba(255,196,0,0.5);
+    flex-shrink: 0;
+}
+.stats-overlay-titulo {
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+.stats-overlay-fechar {
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 14px;
+    cursor: pointer;
+    padding: 4px 6px;
+    border-radius: 4px;
+    line-height: 1;
+    transition: background 0.2s;
+}
+.stats-overlay-fechar:hover { background: rgba(255,255,255,0.2); }
+
+.stats-overlay-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.stats-overlay-body::-webkit-scrollbar { width: 0; }
+
+.stats-bloco {
     background: linear-gradient(160deg, #0f1113, #080a0b);
     border: 1px solid var(--card-border);
     border-radius: 8px;
-    padding: 6px;
-    flex-shrink: 0;
+    padding: 8px;
 }
-.stats-col-titulo {
-    font-size: 9px;
+.stats-bloco-titulo {
+    font-size: 10px;
     font-weight: 700;
     color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: 1px;
     text-align: center;
-    padding-bottom: 6px;
-    margin-bottom: 4px;
+    padding-bottom: 7px;
+    margin-bottom: 6px;
     border-bottom: 1px solid var(--card-border);
 }
-.stats-col-loading {
+.stats-loading {
     display: flex;
     justify-content: center;
-    padding: 10px 0;
+    padding: 12px 0;
 }
-.stats-col-loading .spinner {
-    width: 14px;
-    height: 14px;
-    border-width: 2px;
-}
+.stats-loading .spinner { width: 16px; height: 16px; border-width: 2px; }
+
+/* Linha de jogador */
 .stats-jogador-row {
     display: flex;
     align-items: center;
-    gap: 5px;
-    padding: 4px 2px;
+    gap: 7px;
+    padding: 5px 4px;
     border-bottom: 1px solid var(--card-border);
 }
 .stats-jogador-row:last-child { border-bottom: none; }
 .stats-jogador-rank {
-    font-size: 8px;
+    font-size: 9px;
     font-weight: 700;
     color: var(--text-muted);
-    width: 10px;
-    flex-shrink: 0;
+    width: 12px;
     text-align: center;
+    flex-shrink: 0;
 }
-.stats-jogador-rank.ouro  { color: #FFD700; }
-.stats-jogador-rank.prata { color: #C0C0C0; }
-.stats-jogador-rank.bronze{ color: #CD7F32; }
-.stats-jogador-logo {
-    width: 16px;
-    height: 16px;
+.stats-jogador-rank.ouro   { color: #FFD700; }
+.stats-jogador-rank.prata  { color: #C0C0C0; }
+.stats-jogador-rank.bronze { color: #CD7F32; }
+.stats-time-logo {
+    width: 18px;
+    height: 18px;
     object-fit: contain;
     flex-shrink: 0;
 }
@@ -734,33 +756,28 @@ body.modo-torneio-ativo .tft-screen {
     min-width: 0;
 }
 .stats-jogador-nome {
-    font-size: 9px;
+    font-size: 11px;
     font-weight: 700;
     color: var(--text-primary);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    line-height: 1.3;
 }
 .stats-jogador-pais {
-    font-size: 8px;
+    font-size: 9px;
     color: var(--text-muted);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
 }
 .stats-jogador-num {
-    font-size: 13px;
+    font-size: 16px;
     font-weight: 800;
     color: var(--amber);
     flex-shrink: 0;
-    min-width: 16px;
+    min-width: 20px;
     text-align: right;
 }
-.stats-col-erro {
-    font-size: 9px;
+.stats-erro {
+    font-size: 10px;
     color: var(--text-muted);
     text-align: center;
-    padding: 8px 4px;
-    line-height: 1.5;
+    padding: 10px 0;
 }
