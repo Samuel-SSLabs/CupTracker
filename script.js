@@ -511,7 +511,8 @@ function renderizarBracket(standingsData) {
             ? `<span class="slot-sig tbd">TBD</span>`
             : `<img src="${m.teams.away.logo}" class="slot-logo"><span class="slot-sig">${sigla(m.teams.away.name)}</span>${temGol ? `<span class="slot-score${wA ? ' slot-score-win' : ''}">${golA}</span>` : ''}`;
         const dataTexto = (m.fixture.status.short === 'TBD' || (isTbdA && isTbdB)) ? 'A definir' : `${dia}/${mes} ${hora}`;
-        return `<div class="match-slot">
+        const podeClicarSlot = temDetalhes(m.fixture.status.short);
+        return `<div class="match-slot${podeClicarSlot ? ' slot-clicavel' : ''}"${podeClicarSlot ? ` onclick="abrirMenuDetalhes(${m.fixture.id})"` : ''}>
             <div class="slot-team-row${wH && !isTbdA ? ' slot-winner' : ''}">${rowA}</div>
             <div class="slot-team-row${wA && !isTbdB ? ' slot-winner' : ''}">${rowB}</div>
             <span class="slot-data">${dataTexto}</span>
