@@ -16,6 +16,9 @@
         <header class="header">
             <span class="header-title">COPA 2026</span>
             <div class="header-actions">
+                <button id="btn-stats" class="icon-btn btn-stats-hidden" title="Artilheiros & Assistências">
+                    <span style="font-size:14px;line-height:1;">⚽</span>
+                </button>
                 <button id="btn-teste-audio" class="icon-btn" title="Testar Som">
                     <img src="assets/favicon.ico" alt="Testar Som">
                 </button>
@@ -33,6 +36,23 @@
                     <div class="history-title" id="history-title-label">Último Resultado</div>
                     <div id="history-content">
                         <div style="color:var(--text-muted);text-align:center;font-size:12px;">Aguardando dados...</div>
+                    </div>
+                </div>
+                <!-- Painel de stats (sobrepõe history-block no modo torneio) -->
+                <div id="stats-overlay" class="stats-overlay">
+                    <div class="stats-overlay-header">
+                        <span class="stats-overlay-titulo">Destaques</span>
+                        <button class="stats-overlay-fechar" id="btn-fechar-stats">✕</button>
+                    </div>
+                    <div class="stats-overlay-body">
+                        <div class="stats-bloco">
+                            <div class="stats-bloco-titulo">⚽ Artilheiros</div>
+                            <div id="lista-artilheiros"><div class="stats-loading"><div class="spinner"></div></div></div>
+                        </div>
+                        <div class="stats-bloco">
+                            <div class="stats-bloco-titulo">🎯 Assistências</div>
+                            <div id="lista-assistencias"><div class="stats-loading"><div class="spinner"></div></div></div>
+                        </div>
                     </div>
                 </div>
             </div>
