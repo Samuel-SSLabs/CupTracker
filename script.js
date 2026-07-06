@@ -461,8 +461,7 @@ document.getElementById('btn-toggle-torneio').addEventListener('click', async fu
 let statsCarregadas = false;
 
 document.getElementById('btn-stats').addEventListener('click', function () {
-    const overlay = document.getElementById('stats-overlay');
-    overlay.classList.add('visivel');
+    document.getElementById('stats-overlay').classList.add('visivel');
     if (!statsCarregadas) buscarStats();
 });
 
@@ -496,12 +495,11 @@ async function buscarListaStats(action, elementId, campo) {
             const logoTime = stat?.team?.logo ?? '';
             const nomeTime = stat?.team?.name ?? '';
             const rankClass = idx === 0 ? 'ouro' : idx === 1 ? 'prata' : idx === 2 ? 'bronze' : '';
-            const sobrenome = p.name?.split(' ').pop() ?? p.name;
             return `<div class="stats-jogador-row">
                 <span class="stats-jogador-rank ${rankClass}">${idx + 1}</span>
                 <img src="${logoTime}" class="stats-time-logo" alt="${nomeTime}" title="${nomeTime}">
                 <div class="stats-jogador-info">
-                    <div class="stats-jogador-nome" title="${p.name}">${sobrenome}</div>
+                    <div class="stats-jogador-nome" title="${p.name}">${p.name}</div>
                     <div class="stats-jogador-pais">${sigla(nomeTime)}</div>
                 </div>
                 <span class="stats-jogador-num">${valor}</span>
@@ -566,7 +564,8 @@ function renderizarBracket(standingsData) {
             ? `<span class="slot-sig tbd">TBD</span>`
             : `<img src="${m.teams.away.logo}" class="slot-logo"><span class="slot-sig">${sigla(m.teams.away.name)}</span>${temGol ? `<span class="slot-score${wA ? ' slot-score-win' : ''}">${golA}</span>` : ''}`;
         const dataTexto = (m.fixture.status.short === 'TBD' || (isTbdA && isTbdB)) ? 'A definir' : `${dia}/${mes} ${hora}`;
-        return `<div class="match-slot">
+        const podeClicarSlot = temDetalhes(m.fixture.status.short);
+        return `<div class="match-slot${podeClicarSlot ? ' slot-clicavel' : ''}"${podeClicarSlot ? ` onclick="abrirMenuDetalhes(${m.fixture.id})"` : ''}>
             <div class="slot-team-row${wH && !isTbdA ? ' slot-winner' : ''}">${rowA}</div>
             <div class="slot-team-row${wA && !isTbdB ? ' slot-winner' : ''}">${rowB}</div>
             <span class="slot-data">${dataTexto}</span>
