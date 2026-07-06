@@ -354,7 +354,7 @@ async function atualizarPainel() {
     const dataInicio = new Date(hoje);
     dataInicio.setDate(hoje.getDate() - 25);
     const dataFim = new Date(hoje);
-    dataFim.setDate(hoje.getDate() + 30); // cobre toda a fase eliminatória
+    dataFim.setDate(hoje.getDate() + 30);
     const urlFinal = `${URL_PROXY}?dateFrom=${fmtData(dataInicio)}&dateTo=${fmtData(dataFim)}`;
     try {
         const response = await fetch(urlFinal);
@@ -377,14 +377,10 @@ async function atualizarPainel() {
                     const prev = placaresAnteriores[m.fixture.id];
                     if (golsCasa > prev.home) {
                         historicoGols[m.fixture.id] = { time: 'home', timestamp: hoje.getTime() };
-                        try {
-                            somGol.play().catch(() => {});
-                        }
+                        somGol.play().catch(() => {});
                     } else if (golsFora > prev.away) {
                         historicoGols[m.fixture.id] = { time: 'away', timestamp: hoje.getTime() };
-                        else {
-                            somGol.play().catch(() => {});
-                        }
+                        somGol.play().catch(() => {});
                     }
                 }
                 placaresAnteriores[m.fixture.id] = { home: golsCasa, away: golsFora };
@@ -452,7 +448,7 @@ document.getElementById('btn-toggle-torneio').addEventListener('click', async fu
     if (ativo) {
         renderizarRecentesTorneio();
         if (torneioCarregado) {
-            renderizarBracket(null); 
+            renderizarBracket(null);
         }
         if (!torneioCarregado) {
             document.getElementById('grupos-rodape').innerHTML =
@@ -533,83 +529,36 @@ function renderizarBracket(standingsData) {
     const todasElim = Object.values(cachePartidas)
         .filter(m => !((m.league?.round ?? '').toLowerCase().includes('group')))
         .sort((a, b) => new Date(a.fixture.date) - new Date(b.fixture.date));
-
     const porFase = { r32: [], r16: [], qf: [], sf: [], final: [], third: [] };
-    
     todasElim.forEach(m => {
         const r = (m.league?.round ?? '').toLowerCase();
-
-        if (r.includes('32') || r.includes('1/16') || r.includes('16-avos') || r.includes('16 avos')) {
-            porFase.r32.push(m);
-        } 
-
-        else if (r.includes('16') || r.includes('1/8') || r.includes('oitavas') || r.includes('octavos')) {
-            porFase.r16.push(m);
-        } else if (r.includes('quarter') || r.includes('quartas') || r.includes('1/4')) {
-            porFase.qf.push(m);
-        } else if (r.includes('semi') || r.includes('semis') || r.includes('1/2')) {
-            porFase.sf.push(m);
-        } else if (r.includes('3rd') || r.includes('terceiro') || r.includes('third') || r.includes('bronze')) {
-            porFase.third.push(m);
-        } else if (r.includes('final')) {
-            porFase.final.push(m);
-        }
+        if (r.includes('32') || r.includes('1/16') || r.includes('16-avos') || r.includes('16 avos')) porFase.r32.push(m);
+        else if (r.includes('16') || r.includes('1/8') || r.includes('oitavas') || r.includes('octavos')) porFase.r16.push(m);
+        else if (r.includes('quarter') || r.includes('quartas') || r.includes('1/4')) porFase.qf.push(m);
+        else if (r.includes('semi') || r.includes('semis') || r.includes('1/2')) porFase.sf.push(m);
+        else if (r.includes('3rd') || r.includes('terceiro') || r.includes('third') || r.includes('bronze')) porFase.third.push(m);
+        else if (r.includes('final')) porFase.final.push(m);
     });
-
     const ordenarPorData = (a, b) => new Date(a.fixture.date) - new Date(b.fixture.date);
     porFase.r32.sort(ordenarPorData);
     porFase.r16.sort(ordenarPorData);
     porFase.qf.sort(ordenarPorData);
     porFase.sf.sort(ordenarPorData);
-
     const mapearFase = (partidas, totalJogos, indicesEsq, indicesDir) => {
         const completas = new Array(totalJogos).fill(null);
-        partidas.forEach((m, i) => { 
-            if (i < totalJogos) completas[i] = m; 
-        });
-
+        partidas.forEach((m, i) => { if (i < totalJogos) completas[i] = m; });
         return {
             esq: indicesEsq.map(i => completas[i] ? slotReal(completas[i]) : slotTbd()),
             dir: indicesDir.map(i => completas[i] ? slotReal(completas[i]) : slotTbd())
         };
     };
-
-    const r32 = mapearFase(porFase.r32, 16,
-        [2, 5, 0, 3, 11, 10, 9, 8],
-        [1, 4, 6, 7, 14, 13, 12, 15]
-    );
-
-    const r16 = mapearFase(porFase.r16, 8,
-        [1, 0, 4, 5],
-        [2, 3, 6, 7]
-    );
-
-    const qf = mapearFase(porFase.qf, 4,
-        [0, 1],
-        [2, 3]
-    );
-
-    const sf = mapearFase(porFase.sf, 2,
-        [0],
-        [1]
-    );
-
-    const leftHtml =
-        coluna(r32.esq) +
-        coluna(r16.esq) +
-        coluna(qf.esq)  +
-        coluna(sf.esq);
-
-    const rightHtml =
-        coluna(sf.dir)  +
-        coluna(qf.dir)  +
-        coluna(r16.dir) +
-        coluna(r32.dir);
-    
-    document.getElementById('bracket-left').innerHTML  = leftHtml;
-    document.getElementById('bracket-right').innerHTML = rightHtml;
-
-        const finalEl = document.querySelector('#bracket-final .match-slot');
+    const r32 = mapearFase(porFase.r32, 16, [2, 5, 0, 3, 11, 10, 9, 8], [1, 4, 6, 7, 14, 13, 12, 15]);
+    const r16 = mapearFase(porFase.r16, 8, [1, 0, 4, 5], [2, 3, 6, 7]);
+    const qf  = mapearFase(porFase.qf,  4, [0, 1], [2, 3]);
+    const sf  = mapearFase(porFase.sf,  2, [0], [1]);
+    document.getElementById('bracket-left').innerHTML  = coluna(r32.esq) + coluna(r16.esq) + coluna(qf.esq) + coluna(sf.esq);
+    document.getElementById('bracket-right').innerHTML = coluna(sf.dir)  + coluna(qf.dir)  + coluna(r16.dir) + coluna(r32.dir);
+    const finalEl = document.querySelector('#bracket-final .match-slot');
     const thirdEl = document.querySelector('#bracket-bronze .match-slot');
     if (finalEl) {
         const mF = porFase.final[0];
@@ -655,17 +604,17 @@ function renderizarGrupos(todasEntradas, top8TerceiroIds) {
 
 // ===================== MODO TESTE (uso apenas via console do navegador) =====================
 // Não fica visível na interface. Use no console:
-//   testeFicticio.iniciar()                -> cria partida fictícia Brazil x Argentina e pausa a API real
+//   testeFicticio.iniciar()                 -> cria partida fictícia Brazil x Argentina e pausa a API real
 //   testeFicticio.iniciar('France','Spain') -> cria partida fictícia com outros times
-//   testeFicticio.golHome()                -> simula gol do time da casa
-//   testeFicticio.golAway()                -> simula gol do time visitante
-//   testeFicticio.parar()                  -> remove a partida fictícia e volta a buscar dados reais
+//   testeFicticio.golHome()                 -> simula gol do time da casa
+//   testeFicticio.golAway()                 -> simula gol do time visitante
+//   testeFicticio.parar()                   -> remove a partida fictícia e volta a buscar dados reais
 window.testeFicticio = (function () {
     const FIXTURE_ID_TESTE = 999999;
     let ativo = false;
 
     const LOGOS_TESTE = {
-        'Brazil': 'https://media.api-sports.io/football/teams/6.png',
+        'Brazil':    'https://media.api-sports.io/football/teams/6.png',
         'Argentina': 'https://media.api-sports.io/football/teams/26.png'
     };
 
@@ -713,11 +662,11 @@ window.testeFicticio = (function () {
         const match = cachePartidas[FIXTURE_ID_TESTE];
         if (lado === 'home') match.goals.home++; else match.goals.away++;
 
+        somGol.currentTime = 0;
+        somGol.play().catch(() => {});
+
         const nomeQueMarcou = lado === 'home' ? match.teams.home.name : match.teams.away.name;
-        try {
-            somGol.play().catch(() => {});
-            console.log(`%c[MODO TESTE] Gol de ${nomeQueMarcou}. Tocando audio.mp3`, 'color:#fff;');
-        }
+        console.log(`%c[MODO TESTE] Gol de ${nomeQueMarcou}. Tocando audio.mp3`, 'color:#fff;');
 
         placaresAnteriores[FIXTURE_ID_TESTE] = { home: match.goals.home, away: match.goals.away };
         historicoGols[FIXTURE_ID_TESTE] = { time: lado, timestamp: Date.now() };
