@@ -468,6 +468,11 @@ document.getElementById('btn-stats').addEventListener('click', function () {
     }
 });
 
+document.getElementById('btn-fechar-stats').addEventListener('click', function () {
+    document.getElementById('stats-overlay').classList.remove('visivel');
+}); 
+
+
 async function buscarStats() {
     await Promise.all([
         buscarListaStats('topscorers', 'lista-artilheiros', 'goals'),
