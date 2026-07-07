@@ -326,7 +326,6 @@ body {
     width: 16px;
     height: 16px;
     object-fit: contain;
-    filter: invert(1);
     flex-shrink: 0;
 }
 .icon-btn.highlight-btn {
