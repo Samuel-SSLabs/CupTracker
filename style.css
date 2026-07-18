@@ -810,7 +810,7 @@ body.modo-torneio-ativo .tft-screen {
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin-top: 6px;
+    margin-bottom: 4px;
 }
 .campeao-conteudo {
     display: flex;
