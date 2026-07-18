@@ -176,15 +176,13 @@ body {
     align-items: center;
 }
 .trophy-overlay {
-    width: 60px;       
-    height: 60px;
-    position: absolute;
-    top: -70px;        
-    z-index: 10;
-    object-fit: contain; 
-    aspect-ratio: 1 / 1; 
-    filter: drop-shadow(0 0 12px rgba(255, 171, 77, 0.8));
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+    aspect-ratio: 1 / 1;
+    filter: drop-shadow(0 0 10px rgba(255, 171, 77, 0.8));
     pointer-events: none;
+    margin-bottom: 2px;
 }
 .final-slot {
     margin-top: 10px; 
