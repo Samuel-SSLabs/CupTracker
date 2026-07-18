@@ -549,6 +549,26 @@ function renderizarRecentesTorneio() {
             : '<div style="color:var(--text-muted);font-size:11px;text-align:center;padding:6px 0;">Sem resultados recentes</div>';
     }
 }
+function atualizarCampeao(mFinal) {
+    const el = document.getElementById('campeao-conteudo');
+    if (!el) return;
+    if (!mFinal) {
+        el.innerHTML = '<span class="campeao-placeholder">A definir</span>';
+        return;
+    }
+    const statusShort = mFinal.fixture.status.short;
+    const finalizada = STATUS_FIM.includes(statusShort);
+    const wH = mFinal.teams.home.winner === true;
+    const wA = mFinal.teams.away.winner === true;
+    if (!finalizada || (!wH && !wA)) {
+        el.innerHTML = '<span class="campeao-placeholder">A definir</span>';
+        return;
+    }
+    const timeCampeao = wH ? mFinal.teams.home : mFinal.teams.away;
+    el.innerHTML = `
+        <img src="${timeCampeao.logo}" class="campeao-logo" alt="${sigla(timeCampeao.name)}">
+        <span class="campeao-nome">${timeCampeao.name}</span>`;
+}
 function renderizarBracket(standingsData) {
     const slotReal = (m) => {
         const d = new Date(m.fixture.date);
@@ -616,8 +636,8 @@ function renderizarBracket(standingsData) {
     const sf  = mapearFase(porFase.sf,  2, [0], [1]);
     document.getElementById('bracket-left').innerHTML  = coluna(r32.esq) + coluna(r16.esq) + coluna(qf.esq) + coluna(sf.esq);
     document.getElementById('bracket-right').innerHTML = coluna(sf.dir)  + coluna(qf.dir)  + coluna(r16.dir) + coluna(r32.dir);
-    const finalEl = document.querySelector('#bracket-final .match-slot');
-    const thirdEl = document.querySelector('#bracket-bronze .match-slot');
+    const finalEl = document.querySelector('.final-box .match-slot');
+    const thirdEl = document.querySelector('.bronze-box .match-slot');
     if (finalEl) {
         const mF = porFase.final[0];
         finalEl.outerHTML = mF ? slotReal(mF) : slotTbd().replace('slot-tbd','final-slot');
@@ -626,6 +646,7 @@ function renderizarBracket(standingsData) {
         const mT = porFase.third[0];
         thirdEl.outerHTML = mT ? slotReal(mT) : slotTbd();
     }
+    atualizarCampeao(porFase.final[0] || null);
 }
 function renderizarGrupos(todasEntradas, top8TerceiroIds) {
     const scroller = document.getElementById('grupos-rodape');
