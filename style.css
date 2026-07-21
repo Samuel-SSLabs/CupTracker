@@ -54,20 +54,34 @@ body {
 #btn-teste-audio img { width: 18px; height: 18px; object-fit: contain; filter: invert(1); }
 .game-list { flex-grow: 1; overflow-y: auto; padding: 12px 10px; background-color: transparent; }
 .game-list::-webkit-scrollbar { width: 0px; }
-.history-block { background-color: #131517; border-top: 1px solid var(--card-border); padding: 10px; flex-shrink: 0; }
-.history-title { color: var(--text-muted); font-size: 11px; font-weight: 500; text-align: center; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 1.5px; }
+.history-block { display: none !important; }
 #history-content { color: var(--text-muted); font-size: 12px; text-align: center; }
 .match-block {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    flex-direction: column;
     background: linear-gradient(160deg, #16181b, #0b0c0e);
     border: 1px solid var(--card-border);
     border-radius: 10px;
-    padding: 10px 6px;
+    padding: 8px 6px 10px;
     margin-bottom: 10px;
     color: var(--text-primary);
     cursor: default;
+}
+.match-fase {
+    font-size: 9px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--text-muted);
+    text-align: center;
+    padding-bottom: 6px;
+    margin-bottom: 6px;
+    border-bottom: 1px solid var(--card-border);
+}
+.match-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 .match-block.clicavel { cursor: pointer; }
 .match-block.live { border-color: var(--amber); background: linear-gradient(160deg, #2a2010, #160f06); box-shadow: 0 0 14px -2px rgba(255,171,77,0.35); }
@@ -573,7 +587,42 @@ body.modo-torneio-ativo .tft-screen {
     flex-shrink: 0;
     background: linear-gradient(160deg, #0f1113, #080a0b);
     transition: border-color 0.2s;
+    cursor: pointer;
 }
+.grupo-card:hover { border-color: rgba(255,171,77,0.5); }
+.grupo-card:active { background: #14171b; }
+.grupo-card-ativo {
+    border-color: var(--amber);
+    box-shadow: 0 0 12px -3px rgba(255,171,77,0.5);
+}
+.grupo-card-ativo .grupo-card-titulo { color: var(--amber); }
+.grupo-painel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 6px 4px 12px;
+    border-bottom: 1px solid var(--card-border);
+    margin-bottom: 10px;
+}
+.grupo-painel-titulo {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--amber);
+    letter-spacing: 0.5px;
+}
+.grupo-painel-fechar {
+    background: rgba(255,171,77,0.12);
+    border: 1px solid rgba(255,171,77,0.4);
+    color: var(--amber);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.grupo-painel-fechar:hover { background: rgba(255,171,77,0.22); }
 .grupo-card-titulo {
     font-size: 11px;
     font-weight: 700;
@@ -787,22 +836,6 @@ body.modo-torneio-ativo .tft-screen {
     background: #1a1c22;
 }
 .match-slot.slot-clicavel:active { background: #21242b; }
-
-.stats-eventos-colunas {
-    display: flex;
-    align-items: flex-start;
-    gap: 16px;
-    margin-top: 4px;
-}
-.coluna-stats {
-    flex: 1;
-    min-width: 0;
-    padding-right: 16px;
-    border-right: 1px solid var(--card-border);
-}
-.coluna-eventos { flex: 1; min-width: 0; }
-.coluna-stats .secao-titulo,
-.coluna-eventos .secao-titulo { margin-top: 0; }
 
 .campeao-box {
     display: flex;

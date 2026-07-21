@@ -1,4 +1,3 @@
-const URL_PROXY = 'https://cuptracker.sstudioslabs.workers.dev/v4/matches';
 const STATUS_LIVE = ['1H', '2H', 'ET', 'P'];
 const STATUS_LIVE_COM_HT = ['1H', '2H', 'ET', 'P', 'HT'];
 const STATUS_FIM = ['FT', 'AET', 'PEN'];
@@ -7,10 +6,11 @@ let placaresAnteriores = {};
 let historicoGols = {};
 const TEMPO_DESTAQUE_MS = 180000;
 let cachePartidas = {};
-let atualizacaoDetalhesIntervalo = null;
 let fixtureAtualNoModal = null;
 let primeiraCargaMain = true;
 let cacheDetalhesMemoria = {};
+let mapaTimeParaGrupo = {};
+let grupoAtualNoPainel = null;
 const somGol = new Audio('assets/audio.mp3');
 const SIGLAS_FIFA = {
     "Canada": "CAN", "United States": "USA", "Mexico": "MEX",
@@ -55,6 +55,27 @@ function sigla(nome) {
 function temDetalhes(statusShort) {
     return STATUS_COM_DETALHES.includes(statusShort);
 }
+
+function labelDaFase(roundStr) {
+    const r = (roundStr || '').toLowerCase();
+    if (!r) return '';
+    if (r.includes('group')) {
+        const numero = r.match(/(\d+)/);
+        return numero ? `Fase de Grupos • Rodada ${numero[1]}` : 'Fase de Grupos';
+    }
+    if (r.includes('32')) return '16 avos de Final';
+    if (r.includes('16') || r.includes('1/8') || r.includes('oitavas') || r.includes('octavos')) return 'Oitavas de Final';
+    if (r.includes('quarter') || r.includes('quartas') || r.includes('1/4')) return 'Quartas de Final';
+    if (r.includes('semi') || r.includes('1/2')) return 'Semifinal';
+    if (r.includes('3rd') || r.includes('terceiro') || r.includes('third') || r.includes('bronze')) return 'Disputa de 3º Lugar';
+    if (r.includes('final')) return 'Final';
+    return '';
+}
+
+function dadosEstaticos() {
+    return window.DADOS_COPA || null;
+}
+
 async function abrirMenuDetalhes(fixtureId) {
     const match = cachePartidas[fixtureId];
     if (!match || !temDetalhes(match.fixture.status.short)) return;
@@ -64,26 +85,15 @@ async function abrirMenuDetalhes(fixtureId) {
     modal.classList.add('visivel');
     if (!cacheDetalhesMemoria[fixtureId]) {
         conteudo.innerHTML = '<div class="modal-loading"><div class="spinner"></div><span>Carregando...</span></div>';
-    } else {
-        renderizarDetalhes(fixtureId, cacheDetalhesMemoria[fixtureId]);
     }
     await carregarDetalhes(fixtureId);
-    if (fixtureAtualNoModal !== fixtureId) return;
-    const s = cachePartidas[fixtureId]?.fixture?.status?.short ?? '';
-    if (STATUS_LIVE_COM_HT.includes(s)) {
-        clearInterval(atualizacaoDetalhesIntervalo);
-        atualizacaoDetalhesIntervalo = setInterval(() => {
-            if (fixtureAtualNoModal === fixtureId) carregarDetalhes(fixtureId);
-        }, 15000);
-    }
 }
 async function carregarDetalhes(fixtureId) {
     const conteudo = document.getElementById('conteudo-estatisticas');
     try {
-        const res = await fetch(`${URL_PROXY}?action=detalhes&fixtureId=${fixtureId}`);
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const dados = await res.json();
-        if (dados.erro) throw new Error(dados.erro);
+        const base = dadosEstaticos();
+        const dados = base?.detalhes?.[fixtureId];
+        if (!dados) throw new Error('Dados não disponíveis no snapshot estático');
         cacheDetalhesMemoria[fixtureId] = dados;
         if (fixtureAtualNoModal === fixtureId) renderizarDetalhes(fixtureId, dados);
     } catch (e) {
@@ -132,7 +142,9 @@ function renderizarDetalhes(fixtureId, dados) {
         } else if (statusShort === 'HT') {
             statusTexto = 'Intervalo';
         } else if (STATUS_FIM.includes(statusShort)) {
-            statusTexto = isPenaltyFim ? 'Encerrado — Pênaltis' : 'Encerrado';
+            statusTexto = isPenaltyFim
+                ? 'Encerrado — Pênaltis'
+                : (statusShort === 'AET' ? 'Encerrado — Prorrogação' : 'Encerrado');
         }
         const modalPenHtml = temPen && (isPenaltyShootout || isPenaltyFim)
             ? `<span class="modal-pen-score">${penHome} x ${penAway} <span class="score-pen-label">nos pênaltis</span></span>`
@@ -263,8 +275,6 @@ function renderizarDetalhes(fixtureId, dados) {
 }
 function fecharModal() {
     document.getElementById('modal-detalhes').classList.remove('visivel');
-    clearInterval(atualizacaoDetalhesIntervalo);
-    atualizacaoDetalhesIntervalo = null;
     fixtureAtualNoModal = null;
 }
 function criarBlocoPartida(match, isLive, quemMarcou) {
@@ -290,6 +300,7 @@ function criarBlocoPartida(match, isLive, quemMarcou) {
     const isFinished = STATUS_FIM.includes(statusShort);
     const isPenaltyShootout = statusShort === 'P';
     const isPenaltyFim = statusShort === 'PEN';
+    const isProrrogacaoFim = statusShort === 'AET';
     const podeClicar = temDetalhes(statusShort);
     const penHome = match.score?.penalty?.home;
     const penAway = match.score?.penalty?.away;
@@ -309,7 +320,9 @@ function criarBlocoPartida(match, isLive, quemMarcou) {
         infoMinuto = 'Intervalo';
         infoCentral = ' ';
     } else if (isFinished) {
-        infoCentral = isPenaltyFim ? `${dia}/${mes} - Pên.` : `${dia}/${mes} - Fim`;
+        infoCentral = isPenaltyFim
+            ? `${dia}/${mes} - Pên.`
+            : (isProrrogacaoFim ? `${dia}/${mes} - Prór.` : `${dia}/${mes} - Fim`);
     } else {
         infoCentral = `${dia}/${mes} ${horaMinuto}`;
     }
@@ -322,68 +335,52 @@ function criarBlocoPartida(match, isLive, quemMarcou) {
         quemMarcou ? 'gol-ativo' : '',
         podeClicar ? 'clicavel' : ''
     ].filter(Boolean).join(' ');
+    const faseTexto = labelDaFase(match.league?.round);
+    const faseHtml = faseTexto ? `<div class="match-fase">${faseTexto}</div>` : '';
     return `
         <div class="match-block ${classesExtra}" ${onclickAttr}>
-            <div class="team-side">
-                <img src="${logoA}" class="team-logo" alt="${siglaA}">
-                <span class="tla">${siglaA}</span>
-            </div>
-            <div class="center-info">
-                <span class="match-minute">${infoMinuto}</span>
-                <div class="score-row">
-                    <span class="score-num ${quemMarcou === 'home' ? 'gol-marcado' : ''}" style="color:${corGolA};">${golA}</span>
-                    <span class="score-sep">x</span>
-                    <span class="score-num ${quemMarcou === 'away' ? 'gol-marcado' : ''}" style="color:${corGolB};">${golB}</span>
+            ${faseHtml}
+            <div class="match-row">
+                <div class="team-side">
+                    <img src="${logoA}" class="team-logo" alt="${siglaA}">
+                    <span class="tla">${siglaA}</span>
                 </div>
-                ${penHtml}
-                <span class="status-time">${infoCentral}</span>
-            </div>
-            <div class="team-side right">
-                <span class="tla">${siglaB}</span>
-                <img src="${logoB}" class="team-logo" alt="${siglaB}">
+                <div class="center-info">
+                    <span class="match-minute">${infoMinuto}</span>
+                    <div class="score-row">
+                        <span class="score-num ${quemMarcou === 'home' ? 'gol-marcado' : ''}" style="color:${corGolA};">${golA}</span>
+                        <span class="score-sep">x</span>
+                        <span class="score-num ${quemMarcou === 'away' ? 'gol-marcado' : ''}" style="color:${corGolB};">${golB}</span>
+                    </div>
+                    ${penHtml}
+                    <span class="status-time">${infoCentral}</span>
+                </div>
+                <div class="team-side right">
+                    <span class="tla">${siglaB}</span>
+                    <img src="${logoB}" class="team-logo" alt="${siglaB}">
+                </div>
             </div>
         </div>`;
 }
-async function atualizarPainel() {
-    if (window.modoTesteAtivo) return;
+
+function atualizarPainel() {
     const debugLog = document.getElementById('debug-log');
     const mainQueue = document.getElementById('main-queue');
     const historyContent = document.getElementById('history-content');
-    const fmtData = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-    const hoje = new Date();
-    const dataInicio = new Date(hoje);
-    dataInicio.setDate(hoje.getDate() - 25);
-    const dataFim = new Date(hoje);
-    dataFim.setDate(hoje.getDate() + 30);
-    const urlFinal = `${URL_PROXY}?dateFrom=${fmtData(dataInicio)}&dateTo=${fmtData(dataFim)}`;
+    const base = dadosEstaticos();
     try {
-        const response = await fetch(urlFinal);
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        const data = await response.json();
-        if (data.erro) throw new Error(data.erro);
-        if (!data.response || !Array.isArray(data.response)) throw new Error('Formato inesperado');
-        debugLog.innerText = 'Online';
+        if (!base || !base.partidas || !Array.isArray(base.partidas.response)) {
+            throw new Error('dados.js não encontrado ou inválido');
+        }
+        debugLog.innerText = 'Dados salvos';
         const aoVivo = [], proximos = [], encerrados = [];
-        data.response.forEach(m => {
+        base.partidas.response.forEach(m => {
             cachePartidas[m.fixture.id] = m;
             const s = m.fixture.status.short;
             const isLiveStatus = STATUS_LIVE_COM_HT.includes(s);
             const isFinished = STATUS_FIM.includes(s);
             if (isLiveStatus) {
                 aoVivo.push(m);
-                const golsCasa = m.goals.home ?? 0;
-                const golsFora = m.goals.away ?? 0;
-                if (placaresAnteriores[m.fixture.id]) {
-                    const prev = placaresAnteriores[m.fixture.id];
-                    if (golsCasa > prev.home) {
-                        historicoGols[m.fixture.id] = { time: 'home', timestamp: hoje.getTime() };
-                        somGol.play().catch(() => {});
-                    } else if (golsFora > prev.away) {
-                        historicoGols[m.fixture.id] = { time: 'away', timestamp: hoje.getTime() };
-                        somGol.play().catch(() => {});
-                    }
-                }
-                placaresAnteriores[m.fixture.id] = { home: golsCasa, away: golsFora };
             } else if (isFinished) {
                 encerrados.push(m);
             } else {
@@ -392,15 +389,11 @@ async function atualizarPainel() {
         });
         proximos.sort((a, b) => new Date(a.fixture.date) - new Date(b.fixture.date));
         encerrados.sort((a, b) => new Date(b.fixture.date) - new Date(a.fixture.date));
-        const fila = [...aoVivo, ...proximos.slice(0, 5)];
+        const fila = [...aoVivo, ...encerrados];
         if (fila.length === 0) {
-            mainQueue.innerHTML = '<div class="sem-jogos">Nenhum jogo<br>nos próximos dias.</div>';
+            mainQueue.innerHTML = '<div class="sem-jogos">Nenhum jogo<br>encontrado.</div>';
         } else {
-            mainQueue.innerHTML = fila.map(m => {
-                const destaqueAtivo = (historicoGols[m.fixture.id] && hoje.getTime() - historicoGols[m.fixture.id].timestamp < TEMPO_DESTAQUE_MS)
-                    ? historicoGols[m.fixture.id].time : null;
-                return criarBlocoPartida(m, STATUS_LIVE.includes(m.fixture.status.short), destaqueAtivo);
-            }).join('');
+            mainQueue.innerHTML = fila.map(m => criarBlocoPartida(m, STATUS_LIVE.includes(m.fixture.status.short), null)).join('');
         }
         const modoTorneio = document.getElementById('app-layout').classList.contains('modo-torneio');
         const qtdEncerrados = modoTorneio ? 3 : 1;
@@ -410,17 +403,12 @@ async function atualizarPainel() {
             ? encerrados.slice(0, qtdEncerrados).map(m => criarBlocoPartida(m)).join('')
             : '<div style="color:var(--text-muted);text-align:center;font-size:12px;">Sem resultados</div>';
         primeiraCargaMain = false;
-        const temJogoAoVivo = aoVivo.length > 0;
-        const tempoProximaBusca = temJogoAoVivo ? 15000 : 60000;
-        if (window.timerAtualizacao) clearTimeout(window.timerAtualizacao);
-        window.timerAtualizacao = setTimeout(atualizarPainel, tempoProximaBusca);
     } catch (e) {
-        debugLog.innerText = 'Instabilidade na rede';
+        debugLog.innerText = 'Falha ao carregar dados.js';
         if (primeiraCargaMain) {
-            mainQueue.innerHTML = '<div class="sem-jogos">Falha ao carregar.<br>Tentando novamente...</div>';
+            mainQueue.innerHTML = '<div class="sem-jogos">Falha ao carregar.<br>Verifique se dados.js foi incluído.</div>';
         }
-        if (window.timerAtualizacao) clearTimeout(window.timerAtualizacao);
-        window.timerAtualizacao = setTimeout(atualizarPainel, 15000);
+        console.error(e);
     }
 }
 atualizarPainel();
@@ -442,6 +430,10 @@ document.getElementById('btn-toggle-torneio').addEventListener('click', async fu
             .sort((a, b) => new Date(b.fixture.date) - new Date(a.fixture.date));
         if (historyContent && encerrados.length > 0) {
             historyContent.innerHTML = criarBlocoPartida(encerrados[0]);
+        }
+        if (grupoAtualNoPainel) {
+            grupoAtualNoPainel = null;
+            atualizarPainel();
         }
         return;
     }
@@ -470,25 +462,21 @@ document.getElementById('btn-stats').addEventListener('click', function () {
 
 document.getElementById('btn-fechar-stats').addEventListener('click', function () {
     document.getElementById('stats-overlay').classList.remove('visivel');
-}); 
+});
 
 
 async function buscarStats() {
-    await Promise.all([
-        buscarListaStats('topscorers', 'lista-artilheiros', 'goals'),
-        buscarListaStats('topassists',  'lista-assistencias', 'assists')
-    ]);
+    buscarListaStats('topscorers', 'lista-artilheiros', 'goals');
+    buscarListaStats('topassists', 'lista-assistencias', 'assists');
     statsCarregadas = true;
 }
 
-async function buscarListaStats(action, elementId, campo) {
+function buscarListaStats(action, elementId, campo) {
     const el = document.getElementById(elementId);
     try {
-        const res = await fetch(`${URL_PROXY}?action=${action}`);
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json();
-        if (data.erro) throw new Error(data.erro);
-        const lista = data.response;
+        const base = dadosEstaticos();
+        const data = base?.[action];
+        const lista = data?.response;
         if (!Array.isArray(lista) || lista.length === 0) throw new Error('Sem dados');
         el.innerHTML = lista.slice(0, 10).map((item, idx) => {
             const p        = item.player;
@@ -516,10 +504,9 @@ async function buscarListaStats(action, elementId, campo) {
 
 async function buscarEConstruirTorneio() {
     try {
-        const res = await fetch(`${URL_PROXY}?action=standings`);
-        if (!res.ok) throw new Error('Erro na rede');
-        const data = await res.json();
-        if (!data.response || data.response.length === 0) throw new Error('Sem dados');
+        const base = dadosEstaticos();
+        const data = base?.standings;
+        if (!data || !data.response || data.response.length === 0) throw new Error('Sem dados');
         const todasEntradas = data.response[0].league.standings;
         const tabelaTerceiros = todasEntradas.find(g => g[0]?.group === 'Group Stage') ?? [];
         const top8TerceiroIds = new Set(
@@ -531,7 +518,7 @@ async function buscarEConstruirTorneio() {
     } catch (e) {
         console.error('Falha ao carregar torneio:', e);
         document.getElementById('grupos-rodape').innerHTML =
-            '<span style="color:var(--amber);font-size:11px;padding:10px;display:block;text-align:center;">Falha ao carregar. Tente novamente.</span>';
+            '<span style="color:var(--amber);font-size:11px;padding:10px;display:block;text-align:center;">Falha ao carregar. Verifique dados.js.</span>';
         torneioCarregado = false;
     }
 }
@@ -653,8 +640,10 @@ function renderizarGrupos(todasEntradas, top8TerceiroIds) {
     const gruposValidos = todasEntradas.filter(grupo =>
         /^Group\s+[A-L]$/i.test(grupo[0]?.group ?? '')
     );
+    mapaTimeParaGrupo = {};
     scroller.innerHTML = gruposValidos.map((grupo, i) => {
         const nomeGrupo = grupo[0].group.replace(/Group/i, 'Grupo');
+        grupo.forEach(time => { mapaTimeParaGrupo[time.team.id] = nomeGrupo; });
         const linhasTime = grupo.map((time, idx) => {
             const top2 = idx < 2;
             const top4Terceiro = idx === 2 && (top8TerceiroIds?.has(time.team.id) ?? false);
@@ -673,21 +662,50 @@ function renderizarGrupos(todasEntradas, top8TerceiroIds) {
                     <span class="grupo-pts">${time.points}</span>
                 </div>`;
         }).join('');
+        const ativo = grupoAtualNoPainel === nomeGrupo;
         return `
-            <div class="grupo-card">
+            <div class="grupo-card${ativo ? ' grupo-card-ativo' : ''}" data-grupo="${nomeGrupo}" onclick="alternarFiltroGrupo('${nomeGrupo}')">
                 <div class="grupo-card-titulo">${nomeGrupo}</div>
                 ${linhasTime}
             </div>`;
     }).join('');
 }
 
+function alternarFiltroGrupo(nomeGrupo) {
+    if (grupoAtualNoPainel === nomeGrupo) {
+        limparFiltroGrupo();
+    } else {
+        renderizarHistoricoGrupo(nomeGrupo);
+    }
+}
+
+function renderizarHistoricoGrupo(nomeGrupo) {
+    grupoAtualNoPainel = nomeGrupo;
+    const mainQueue = document.getElementById('main-queue');
+    const jogos = Object.values(cachePartidas)
+        .filter(m => (m.league?.round ?? '').toLowerCase().includes('group') && mapaTimeParaGrupo[m.teams.home.id] === nomeGrupo)
+        .sort((a, b) => new Date(b.fixture.date) - new Date(a.fixture.date));
+    const cabecalho = `
+        <div class="grupo-painel-header">
+            <span class="grupo-painel-titulo">${nomeGrupo}</span>
+            <button class="grupo-painel-fechar" onclick="limparFiltroGrupo()">Ver todas ✕</button>
+        </div>`;
+    const corpo = jogos.length
+        ? jogos.map(m => criarBlocoPartida(m)).join('')
+        : '<div class="sem-jogos">Sem jogos<br>para este grupo.</div>';
+    mainQueue.innerHTML = cabecalho + corpo;
+    document.querySelectorAll('.grupo-card').forEach(c => {
+        c.classList.toggle('grupo-card-ativo', c.dataset.grupo === nomeGrupo);
+    });
+}
+
+function limparFiltroGrupo() {
+    grupoAtualNoPainel = null;
+    document.querySelectorAll('.grupo-card').forEach(c => c.classList.remove('grupo-card-ativo'));
+    atualizarPainel();
+}
+
 // ===================== MODO TESTE (uso apenas via console do navegador) =====================
-// Não fica visível na interface. Use no console:
-//   testeFicticio.iniciar()                 -> cria partida fictícia Brazil x Argentina e pausa a API real
-//   testeFicticio.iniciar('France','Spain') -> cria partida fictícia com outros times
-//   testeFicticio.golHome()                 -> simula gol do time da casa
-//   testeFicticio.golAway()                 -> simula gol do time visitante
-//   testeFicticio.parar()                   -> remove a partida fictícia e volta a buscar dados reais
 window.testeFicticio = (function () {
     const FIXTURE_ID_TESTE = 999999;
     let ativo = false;
@@ -721,14 +739,12 @@ window.testeFicticio = (function () {
     }
 
     function iniciar(homeName = 'Brazil', awayName = 'Argentina') {
-        if (window.timerAtualizacao) clearTimeout(window.timerAtualizacao);
         ativo = true;
-        window.modoTesteAtivo = true;
         cachePartidas[FIXTURE_ID_TESTE] = montarPartida(homeName, awayName, 0, 0);
         placaresAnteriores[FIXTURE_ID_TESTE] = { home: 0, away: 0 };
         renderizar(null);
         console.log(
-            `%c[MODO TESTE] Partida fictícia criada: ${homeName} x ${awayName}. API real pausada.\nUse testeFicticio.golHome() ou testeFicticio.golAway() para simular gols.\nUse testeFicticio.parar() para encerrar.`,
+            `%c[MODO TESTE] Partida fictícia criada: ${homeName} x ${awayName}.\nUse testeFicticio.golHome() ou testeFicticio.golAway() para simular gols.\nUse testeFicticio.parar() para encerrar.`,
             'color:#3dffa0;font-weight:bold;'
         );
     }
@@ -758,12 +774,11 @@ window.testeFicticio = (function () {
 
     function parar() {
         ativo = false;
-        window.modoTesteAtivo = false;
         delete cachePartidas[FIXTURE_ID_TESTE];
         delete placaresAnteriores[FIXTURE_ID_TESTE];
         delete historicoGols[FIXTURE_ID_TESTE];
         atualizarPainel();
-        console.log('%c[MODO TESTE] Encerrado. Retomando dados reais da API.', 'color:#ffab4d;font-weight:bold;');
+        console.log('%c[MODO TESTE] Encerrado. Voltando ao snapshot estático.', 'color:#ffab4d;font-weight:bold;');
     }
 
     return {
