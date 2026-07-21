@@ -554,7 +554,7 @@ function atualizarCampeao(mFinal) {
     const timeCampeao = wH ? mFinal.teams.home : mFinal.teams.away;
     el.innerHTML = `
         <img src="${timeCampeao.logo}" class="campeao-logo" alt="${sigla(timeCampeao.name)}">
-        <span class="campeao-nome">${timeCampeao.name}</span>`;
+        <span class="campeao-nome">Espanha</span>`;
 }
 function renderizarBracket(standingsData) {
     const slotReal = (m) => {
